@@ -18,6 +18,26 @@
 
 ---
 
+## 我要進哪裡下指令？（重點）
+
+- 要下 `dotnet add package`、`dotnet ef`、`dotnet restore`：**進 SDK 容器**。
+- 不要在 `dotnet-api` 容器裡做開發指令（那是 runtime，主要拿來跑服務）。
+
+進 SDK 容器指令（在專案根目錄執行）：
+
+```bash
+docker run --rm -it --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.microsoft.com/dotnet/sdk:8.0 sh
+```
+
+進去後常用：
+
+```bash
+dotnet add package <PackageName>
+dotnet restore
+```
+
+---
+
 ## 前置條件
 
 - 先啟動服務：
