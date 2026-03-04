@@ -2,6 +2,17 @@
 
 這份筆記是給目前專案使用（ASP.NET Core Web API + MySQL + Docker Compose）。
 
+## 這份文件的目標（CRUD 起手式）
+
+這份 `01` 要先完成以下基礎設置：
+
+1. 開發環境可執行（Docker + SDK 容器 + NuGet）
+2. DB 可連線，Migration 可套用
+3. 有基本 Model（Entity）
+4. 有基本 Controller（先能做 CRUD）
+
+分層架構、測試、通知、背景工作，先放後面章節再做。
+
 ## 編號流程（照這個順序做）
 
 1. 啟動服務
@@ -62,6 +73,10 @@ docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
 10. 再開始寫 Controller
 
 先做完第 9 步，再進入 API 功能開發。
+
+11. 完成最小 CRUD 驗證（GET/POST 至少跑通）
+
+確認 `Model ↔ DbContext ↔ Migration ↔ Controller` 這條線是通的。
 
 ---
 

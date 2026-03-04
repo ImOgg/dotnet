@@ -85,12 +85,12 @@ API/
 
 完整的開發指南請參考 `docs/` 資料夾:
 
-- `docs/10-background-jobs.md` - 背景工作完整指南
-- `docs/06-dependency-injection.md` - 依賴注入完整指南
-- `docs/07-service-layer-architecture.md` - 服務層架構指南
-- `docs/08-file-storage.md` - 檔案儲存指南
-- `docs/11-notifications.md` - 通知系統指南
-- `docs/09-testing.md` - 測試指南
+- `docs/02-advanced/10-background-jobs.md` - 背景工作完整指南
+- `docs/02-advanced/06-dependency-injection.md` - 依賴注入完整指南
+- `docs/02-advanced/07-service-layer-architecture.md` - 服務層架構指南
+- `docs/02-advanced/08-file-storage.md` - 檔案儲存指南
+- `docs/02-advanced/11-notifications.md` - 通知系統指南
+- `docs/02-advanced/09-testing.md` - 測試指南
 
 ## ASP.NET 技術對照
 
