@@ -35,6 +35,33 @@ dotnet run
 dotnet restore
 ```
 
+### Docker 快速開始（推薦）
+
+本專案可直接使用 Docker 啟動 API + MySQL。
+
+```bash
+# 1) 第一次先建立環境檔（若已存在可略過）
+copy .env.example .env
+
+# 2) 啟動服務
+docker compose up -d --build
+
+# 3) 套用 Migration（建立資料表）
+docker run --rm --network dotnet_default -v "${PWD}:/src" -w /src/API -e ConnectionStrings__DefaultConnection="Server=mysql;Port=3306;Database=c_test;User ID=root;Password=password;" mcr.microsoft.com/dotnet/sdk:8.0 sh -lc "dotnet tool install --global dotnet-ef --version 8.*; dotnet restore; /root/.dotnet/tools/dotnet-ef database update"
+
+# 4) 檢查資料表
+docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
+```
+
+MySQL Workbench 連線資訊：
+- Host: `127.0.0.1`
+- Port: `3307`
+- User: `root`
+- Password: `.env` 的 `MYSQL_ROOT_PASSWORD`
+- Database: `c_test`
+
+更多 Docker + EF 操作，請看 `docs/docker-ef-migrations.md`。
+
 ### Launch Settings 設定
 位置：`Properties/launchSettings.json`
 

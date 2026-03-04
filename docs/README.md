@@ -8,15 +8,16 @@
 2. [web-development-technologies.md](./web-development-technologies.md) - Web 開發技術
 3. [aspnet-overview.md](./aspnet-overview.md) - ASP.NET 概覽
 4. [migrations-guide.md](./migrations-guide.md) - Migration 指南
+5. [docker-ef-migrations.md](./docker-ef-migrations.md) - Docker + EF Migration 實作筆記
 
 ## 進階主題
 
-5. [background-jobs.md](./background-jobs.md) - 背景工作完整指南
-6. [notifications.md](./notifications.md) - 通知系統完整指南
-7. [dependency-injection.md](./dependency-injection.md) - 依賴注入完整指南
-8. [service-layer-architecture.md](./service-layer-architecture.md) - 服務層架構指南
-9. [file-storage.md](./file-storage.md) - 檔案儲存與管理指南
-10. [testing.md](./testing.md) - 測試完整指南
+6. [background-jobs.md](./background-jobs.md) - 背景工作完整指南
+7. [notifications.md](./notifications.md) - 通知系統完整指南
+8. [dependency-injection.md](./dependency-injection.md) - 依賴注入完整指南
+9. [service-layer-architecture.md](./service-layer-architecture.md) - 服務層架構指南
+10. [file-storage.md](./file-storage.md) - 檔案儲存與管理指南
+11. [testing.md](./testing.md) - 測試完整指南
 
 ## 範例程式碼
 
