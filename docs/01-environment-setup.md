@@ -1,15 +1,76 @@
-# Docker 環境下的 EF Core Migration 筆記
+# 環境設定與 Migration 編號流程
 
 這份筆記是給目前專案使用（ASP.NET Core Web API + MySQL + Docker Compose）。
+
+## 編號流程（照這個順序做）
+
+1. 啟動服務
+
+```bash
+docker compose up -d --build
+```
+
+2. 確認 DB 健康
+
+```bash
+docker compose ps
+```
+
+3. 進 SDK 容器（不要進 `dotnet-api`）
+
+```bash
+docker run --rm -it --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.microsoft.com/dotnet/sdk:8.0 sh
+```
+
+4. 先安裝 NuGet 套件（相當於 `composer install`）
+
+```bash
+dotnet restore
+```
+
+5. 第一次先裝 EF 工具
+
+```bash
+dotnet tool install --global dotnet-ef --version 8.*
+export PATH=$PATH:/root/.dotnet/tools
+```
+
+6. 有改 Entity 才新增 Migration
+
+```bash
+dotnet ef migrations add <Name> -o Migrations
+```
+
+7. 套用到資料庫
+
+```bash
+dotnet ef database update
+```
+
+8. 離開容器
+
+```bash
+exit
+```
+
+9. 驗證資料表
+
+```bash
+docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
+```
+
+10. 再開始寫 Controller
+
+先做完第 9 步，再進入 API 功能開發。
+
+---
 
 ## 30 秒口訣（先記這段就好）
 
 1. `docker compose up -d --build`
 2. 進 SDK 容器
-3. 在容器內只打：
-	- `dotnet ef migrations add <Name> -o Migrations`
-	- `dotnet ef database update`
-	- `dotnet ef migrations list`
+3. `dotnet ef migrations add <Name> -o Migrations`
+4. `dotnet ef database update`
 
 你可以把它理解成：
 
@@ -39,6 +100,15 @@ dotnet restore
 ---
 
 ## 前置條件
+
+- 先確認 `.NET SDK / NuGet` 可用（本機或 SDK 容器都可）：
+
+```bash
+dotnet --info
+dotnet nuget --help
+```
+
+- 若你本機沒有 dotnet，請直接進 SDK 容器後再執行所有 `dotnet` 指令。
 
 - 先啟動服務：
 

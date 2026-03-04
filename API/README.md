@@ -70,27 +70,27 @@ API/
 詳細的技術文件存放在 **[../docs/](../docs/)** 資料夾：
 
 ### 核心概念
-- **[ASP.NET 完整說明](../docs/aspnet-overview.md)**
+- **[ASP.NET 完整說明](../docs/04-aspnet-overview.md)**
   - .NET Framework、.NET Core、ASP.NET 三者關係
   - ASP.NET 演進歷史
   - ASP.NET vs ASP.NET Core 詳細比較
   - 核心概念：DI、配置、路由、中介軟體
   - Program.cs 完整解析
 
-- **[.NET Framework vs .NET Core](../docs/dotnet-framework-vs-core.md)**
+- **[.NET Framework vs .NET Core](../docs/02-dotnet-framework-vs-core.md)**
   - 版本演進時間軸
   - 主要差異對照表
   - LTS vs STS 支援策略
   - 遷移建議
 
 ### Web 開發技術
-- **[ASP.NET Web 開發技術完整指南](../docs/web-development-technologies.md)**
+- **[ASP.NET Web 開發技術完整指南](../docs/03-web-development-technologies.md)**
   - Web Forms、MVC、Web API、Razor Pages、Blazor
   - 各技術適用場景與程式碼範例
   - 技術選擇決策樹
 
 ### 資料庫
-- **[Entity Framework Core Migration 指南](../docs/migrations-guide.md)**
+- **[Entity Framework Core Migration 指南](../docs/05-migrations-guide.md)**
   - Migration 基本概念與命令
   - 完整工作流程與專案紀錄
   - 進階技巧與最佳實踐

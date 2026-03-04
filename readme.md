@@ -46,7 +46,7 @@ copy .env.example .env
 # 2) 啟動服務
 docker compose up -d --build
 
-# 3) 依 docs/docker-ef-migrations.md 的「進 SDK 容器短指令」執行 migration
+# 3) 依 docs/01-environment-setup.md 的「進 SDK 容器短指令」執行 migration
 
 # 4) 檢查資料表
 docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
@@ -59,7 +59,7 @@ MySQL Workbench 連線資訊：
 - Password: `.env` 的 `MYSQL_ROOT_PASSWORD`
 - Database: `c_test`
 
-更多 Docker + EF 操作，請看 `docs/docker-ef-migrations.md`。
+更多 Docker + EF 操作，請看 `docs/01-environment-setup.md`。
 
 ### Launch Settings 設定
 位置：`Properties/launchSettings.json`
