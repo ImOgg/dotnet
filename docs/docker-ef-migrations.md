@@ -36,31 +36,7 @@ docker compose ps
 
 ---
 
-## 方式 A：一次性單行（不用進容器）
-
-以下命令都在專案根目錄執行。
-
-### 套用 migration（相當於 `php artisan migrate`）
-
-```bash
-docker run --rm --network dotnet_default -v "${PWD}:/src" -w /src/API -e ConnectionStrings__DefaultConnection="Server=mysql;Port=3306;Database=c_test;User ID=root;Password=password;" mcr.microsoft.com/dotnet/sdk:8.0 sh -lc "dotnet tool install --global dotnet-ef --version 8.*; dotnet restore; /root/.dotnet/tools/dotnet-ef database update"
-```
-
-### 新增 migration（相當於 `make:migration`）
-
-```bash
-docker run --rm --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.microsoft.com/dotnet/sdk:8.0 sh -lc "dotnet tool install --global dotnet-ef --version 8.*; dotnet restore; /root/.dotnet/tools/dotnet-ef migrations add AddSomething -o Migrations"
-```
-
-### 查看 migration 清單（相當於 `migrate:status`）
-
-```bash
-docker run --rm --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.microsoft.com/dotnet/sdk:8.0 sh -lc "dotnet tool install --global dotnet-ef --version 8.*; /root/.dotnet/tools/dotnet-ef migrations list"
-```
-
----
-
-## 方式 B：進容器後打短指令（最好記）
+## 進容器後打短指令（開發推薦）
 
 ### Step 1) 進 SDK 容器
 
@@ -89,13 +65,6 @@ dotnet ef migrations list
 ```bash
 exit
 ```
-
----
-
-## 我該選哪種？
-
-- 想一次貼上就完成：用「方式 A」。
-- 想少記長指令、像 artisan 操作：用「方式 B」。
 
 ---
 

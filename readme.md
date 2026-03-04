@@ -46,8 +46,7 @@ copy .env.example .env
 # 2) 啟動服務
 docker compose up -d --build
 
-# 3) 套用 Migration（建立資料表）
-docker run --rm --network dotnet_default -v "${PWD}:/src" -w /src/API -e ConnectionStrings__DefaultConnection="Server=mysql;Port=3306;Database=c_test;User ID=root;Password=password;" mcr.microsoft.com/dotnet/sdk:8.0 sh -lc "dotnet tool install --global dotnet-ef --version 8.*; dotnet restore; /root/.dotnet/tools/dotnet-ef database update"
+# 3) 依 docs/docker-ef-migrations.md 的「進 SDK 容器短指令」執行 migration
 
 # 4) 檢查資料表
 docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
