@@ -1,0 +1,11 @@
+# Local environment files
+.env
+
+# Build outputs
+**/bin/
+**/obj/
+
+# User-specific files
+.vs/
+*.user
+*.suo
