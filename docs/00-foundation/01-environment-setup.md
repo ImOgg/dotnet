@@ -39,12 +39,23 @@ docker run --rm -it --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.mi
 dotnet restore
 ```
 
-5. 第一次先裝 EF 工具
+5. EF 工具（分兩種情況）
 
 ```bash
-dotnet tool install --global dotnet-ef --version 8.*
+# 還沒裝過（首次）
+dotnet tool install --global dotnet-ef --version 9.*
+
+# 已經裝過（需要對齊版本時）
+dotnet tool update --global dotnet-ef --version 9.*
+
 export PATH=$PATH:/root/.dotnet/tools
+dotnet ef --version
 ```
+
+補充：
+
+- `dotnet restore` 才是專案 NuGet 套件的「像 composer install」步驟。
+- `dotnet-ef` 是 CLI 工具，不是專案套件；已安裝且版本正確時，通常直接用 `dotnet ef ...` 即可。
 
 6. 有改 Entity 才新增 Migration
 
@@ -149,12 +160,29 @@ docker compose ps
 docker run --rm -it --network dotnet_default -v "${PWD}:/src" -w /src/API mcr.microsoft.com/dotnet/sdk:8.0 sh
 ```
 
-### Step 2) 容器內第一次執行（每次新開容器都要）
+### Step 2) 容器內工具準備（依情況擇一）
 
 ```bash
-dotnet tool install --global dotnet-ef --version 8.*
+# A. 還沒裝過
+dotnet tool install --global dotnet-ef --version 9.*
+
+# B. 已裝過但要對齊版本
+dotnet tool update --global dotnet-ef --version 9.*
+
 export PATH=$PATH:/root/.dotnet/tools
+dotnet ef --version
 dotnet restore
+```
+
+如果你改用「專案本地工具（local tool）」流程，會更像 `composer install`：
+
+```bash
+# 專案根目錄一次性建立工具清單
+dotnet new tool-manifest
+dotnet tool install dotnet-ef --version 9.*
+
+# 之後每次只要還原工具（類似 composer install）
+dotnet tool restore
 ```
 
 ### Step 3) 之後只要記這三個
