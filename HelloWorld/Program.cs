@@ -1,4 +1,5 @@
 // See https://aka.ms/new-console-template for more information
+//參考學習 https://ithelp.ithome.com.tw/users/20178767/ironman/8726
 using System.Diagnostics.CodeAnalysis;
 
 // ============================
@@ -481,116 +482,215 @@ using System.Diagnostics.CodeAnalysis;
 //     }
 // }
 
-// ============================
-// 9. 類別、物件與屬性（Class, Object & Property）
-// ============================
-// Top-level statements 必須放在型別宣告之前
+// // ============================
+// // 9. 類別、物件與屬性（Class, Object & Property）
+// // ============================
+// // Top-level statements 必須放在型別宣告之前
 
-// 用有參數建構子建立物件（FirstName 由建構子設定，其餘用初始化語法補上）
-var p1 = new Person("Grace") { LastName = "Hopper", Age = 85 };
-// 用無參數建構子建立物件（required 屬性全部用初始化語法設定）
-var p2 = new Person() { FirstName = "Ada", LastName = "Lovelace", Age = 36 };
+// // 用有參數建構子建立物件（FirstName 由建構子設定，其餘用初始化語法補上）
+// var p1 = new Person("Grace") { LastName = "Hopper", Age = 85 };
+// // 用無參數建構子建立物件（required 屬性全部用初始化語法設定）
+// var p2 = new Person() { FirstName = "Ada", LastName = "Lovelace", Age = 36 };
 
-p1.Nickname = "  Admiral Grace  ";  // setter 會自動 Trim() 去除空白
-p1.SetEmail("grace@navy.mil");      // Email 是 private set，只能透過方法修改
-p1.Login();
-p1.Login();
+// p1.Nickname = "  Admiral Grace  ";  // setter 會自動 Trim() 去除空白
+// p1.SetEmail("grace@navy.mil");      // Email 是 private set，只能透過方法修改
+// p1.Login();
+// p1.Login();
 
-Console.WriteLine("--- 基本屬性 ---");
-Console.WriteLine(p1);                                  // 輸出：[Person] Grace Hopper, Age: 85
-Console.WriteLine(p2);                                  // 輸出：[Person] Ada Lovelace, Age: 36
+// Console.WriteLine("--- 基本屬性 ---");
+// Console.WriteLine(p1);                                  // 輸出：[Person] Grace Hopper, Age: 85
+// Console.WriteLine(p2);                                  // 輸出：[Person] Ada Lovelace, Age: 36
 
-Console.WriteLine("\n--- 自訂 setter / Trim ---");
-Console.WriteLine($"Nickname: '{p1.Nickname}'");        // 輸出：'Admiral Grace'（已去除空白）
+// Console.WriteLine("\n--- 自訂 setter / Trim ---");
+// Console.WriteLine($"Nickname: '{p1.Nickname}'");        // 輸出：'Admiral Grace'（已去除空白）
 
-Console.WriteLine("\n--- private set ---");
-Console.WriteLine($"Email: {p1.Email}");                // 輸出：grace@navy.mil
-// p1.Email = "xxx";                                    // ❌ 編譯錯誤：Email 是 private set
+// Console.WriteLine("\n--- private set ---");
+// Console.WriteLine($"Email: {p1.Email}");                // 輸出：grace@navy.mil
+// // p1.Email = "xxx";                                    // ❌ 編譯錯誤：Email 是 private set
 
-Console.WriteLine("\n--- 唯讀屬性（Read-only）---");
-Console.WriteLine($"CreatedAt: {p1.CreatedAt}");        // 只有 p1 有值（用有參數建構子建立）
-Console.WriteLine($"CreatedAt: {p2.CreatedAt}");        // 輸出：01/01/0001（DateTime 預設值，無參數建構子未設定）
+// Console.WriteLine("\n--- 唯讀屬性（Read-only）---");
+// Console.WriteLine($"CreatedAt: {p1.CreatedAt}");        // 只有 p1 有值（用有參數建構子建立）
+// Console.WriteLine($"CreatedAt: {p2.CreatedAt}");        // 輸出：01/01/0001（DateTime 預設值，無參數建構子未設定）
 
-Console.WriteLine("\n--- Lazy Loading FullName 快取 ---");
-Console.WriteLine($"FullName: {p1.FullName}");          // 輸出：Grace Hopper（第一次計算並快取）
-p1.LastName = "Murray";                                 // 修改 LastName → 清空快取
-Console.WriteLine($"FullName: {p1.FullName}");          // 輸出：Grace Murray（重新計算）
+// Console.WriteLine("\n--- Lazy Loading FullName 快取 ---");
+// Console.WriteLine($"FullName: {p1.FullName}");          // 輸出：Grace Hopper（第一次計算並快取）
+// p1.LastName = "Murray";                                 // 修改 LastName → 清空快取
+// Console.WriteLine($"FullName: {p1.FullName}");          // 輸出：Grace Murray（重新計算）
 
-Console.WriteLine("\n--- 方法 ---");
-Console.WriteLine($"LoginCount: {p1.GetLoginCount()}"); // 輸出：2
+// Console.WriteLine("\n--- 方法 ---");
+// Console.WriteLine($"LoginCount: {p1.GetLoginCount()}"); // 輸出：2
 
-Console.Write($"\nPress Enter to exit...");
-Console.Read();
+// Console.Write($"\nPress Enter to exit...");
+// Console.Read();
 
-// 型別宣告放在 top-level statements 之後
-public class Person
+// // 型別宣告放在 top-level statements 之後
+// public class Person
+// {
+//     // 私有欄位（Field）：不對外公開，搭配屬性或方法使用
+//     private int _loginCount = 0;
+//     private string? _nickname;
+//     private string? _lastName;
+//     private string? _fullName;  // FullName 的快取欄位
+
+//     // 無參數建構子（Parameterless Constructor）
+//     public Person() { }
+
+//     // 有參數建構子 + [SetsRequiredMembers]：
+//     // 告訴編譯器此建構子已滿足所有 required 屬性，呼叫端不需再補給
+//     [SetsRequiredMembers]
+//     public Person(string firstName)
+//     {
+//         FirstName = firstName;
+//         CreatedAt = DateTime.Now;  // 唯讀屬性只能在建構子裡賦值
+//     }
+
+//     // required + init：建立時必須給值，建立後不可修改（唯讀）
+//     public required string FirstName { get; init; }
+
+//     // required + 自訂 setter：修改 LastName 時清空 FullName 快取
+//     public required string LastName
+//     {
+//         get => _lastName;
+//         set
+//         {
+//             _lastName = value;
+//             _fullName = null;  // 清空快取，讓 FullName 下次重新計算
+//         }
+//     }
+
+//     // 預設值屬性 + private set：外部只能讀，只能透過類別內部方法修改
+//     public string Email { get; private set; } = string.Empty;
+//     public void SetEmail(string email) => Email = email;  // 透過方法修改 Email
+
+//     // 自訂 setter：寫入時自動去除前後空白
+//     public string? Nickname
+//     {
+//         get => _nickname;
+//         set => _nickname = value?.Trim();
+//     }
+
+//     // 唯讀屬性（Read-only）：只有 get，只能在建構子設值，外部完全不能修改
+//     public DateTime CreatedAt { get; }
+
+//     // Lazy Loading 計算屬性：第一次呼叫才計算並快取，LastName 改變時會重新計算
+//     public string FullName
+//     {
+//         get
+//         {
+//             // ??= 複合賦值：若 _fullName 是 null 才計算並賦值，等同 if (_fullName is null) _fullName = ...
+//             _fullName ??= $"{FirstName} {LastName}";
+//             return _fullName;
+//         }
+//     }
+
+//     // 一般自動屬性
+//     public int Age { get; set; }
+
+//     // 方法：操作私有欄位
+//     public void Login() => _loginCount++;
+//     public int GetLoginCount() => _loginCount;
+
+//     // 覆寫 ToString()：讓 Console.WriteLine(物件) 有意義的輸出
+//     public override string ToString() =>
+//         $"[Person] {FullName}, Age: {Age}";
+// }
+
+// 建立 WorkItem 物件
+WorkItem item = new WorkItem("Fix Bugs",
+                            "Fix all bugs in my code branch",
+                            new TimeSpan(3, 4, 0, 0));
+
+// 建立 ChangeRequest 物件
+ChangeRequest change = new ChangeRequest("Change Base Class Design",
+                                        "Add members to the class",
+                                        new TimeSpan(4, 0, 0),
+                                        1);
+
+// 使用 WorkItem 的 ToString()
+Console.WriteLine(item.ToString());
+
+// 使用繼承自 WorkItem 的 Update()
+change.Update("Change the Design of the Base Class",
+    new TimeSpan(4, 0, 0));
+
+// ChangeRequest 繼承了 WorkItem 的 ToString()
+Console.WriteLine(change.ToString());
+
+// WorkItem 類別，繼承自 Object（所有 C# 類別的根類別）
+public class WorkItem
 {
-    // 私有欄位（Field）：不對外公開，搭配屬性或方法使用
-    private int _loginCount = 0;
-    private string? _nickname;
-    private string? _lastName;
-    private string? _fullName;  // FullName 的快取欄位
+    // 靜態欄位：所有 WorkItem 物件共用同一個 currentID 計數器
+    // static 表示屬於「類別本身」，不屬於任何單一物件
+    private static int currentID;
 
-    // 無參數建構子（Parameterless Constructor）
-    public Person() { }
+    // protected 屬性：本類別和子類別可存取，外部無法直接讀寫
+    protected int ID { get; set; }
+    protected string Title { get; set; }
+    protected string Description { get; set; }
+    protected TimeSpan jobLength { get; set; }
 
-    // 有參數建構子 + [SetsRequiredMembers]：
-    // 告訴編譯器此建構子已滿足所有 required 屬性，呼叫端不需再補給
-    [SetsRequiredMembers]
-    public Person(string firstName)
+    // 預設建構子（無參數）
+    // 用途：先建立物件、之後再填資料；或供子類別繼承時呼叫
+    public WorkItem()
     {
-        FirstName = firstName;
-        CreatedAt = DateTime.Now;  // 唯讀屬性只能在建構子裡賦值
+        ID = 0;
+        Title = "Default title";
+        Description = "Default description.";
+        jobLength = new TimeSpan();
     }
 
-    // required + init：建立時必須給值，建立後不可修改（唯讀）
-    public required string FirstName { get; init; }
-
-    // required + 自訂 setter：修改 LastName 時清空 FullName 快取
-    public required string LastName
+    // 帶參數的建構子
+    // 用途：一次建立並填入所有資料，ID 自動遞增
+    public WorkItem(string title, string desc, TimeSpan joblen)
     {
-        get => _lastName;
-        set
-        {
-            _lastName = value;
-            _fullName = null;  // 清空快取，讓 FullName 下次重新計算
-        }
+        this.ID = GetNextID();   // 取得下一個唯一 ID
+        this.Title = title;
+        this.Description = desc;
+        this.jobLength = joblen;
     }
 
-    // 預設值屬性 + private set：外部只能讀，只能透過類別內部方法修改
-    public string Email { get; private set; } = string.Empty;
-    public void SetEmail(string email) => Email = email;  // 透過方法修改 Email
+    // 靜態建構子：程式啟動時只執行一次，用來初始化靜態欄位
+    // 不能有參數、不能有存取修飾詞（public/private）
+    static WorkItem() => currentID = 0;
 
-    // 自訂 setter：寫入時自動去除前後空白
-    public string? Nickname
+    // 產生下一個 ID：每次呼叫都讓 currentID +1 再回傳
+    // ++currentID 是前綴遞增（先加後回傳），確保 ID 從 1 開始
+    protected int GetNextID() => ++currentID;
+
+    // 更新工作項目的標題和預估時間
+    public void Update(string title, TimeSpan joblen)
     {
-        get => _nickname;
-        set => _nickname = value?.Trim();
+        this.Title = title;
+        this.jobLength = joblen;
     }
 
-    // 唯讀屬性（Read-only）：只有 get，只能在建構子設值，外部完全不能修改
-    public DateTime CreatedAt { get; }
-
-    // Lazy Loading 計算屬性：第一次呼叫才計算並快取，LastName 改變時會重新計算
-    public string FullName
-    {
-        get
-        {
-            // ??= 複合賦值：若 _fullName 是 null 才計算並賦值，等同 if (_fullName is null) _fullName = ...
-            _fullName ??= $"{FirstName} {LastName}";
-            return _fullName;
-        }
-    }
-
-    // 一般自動屬性
-    public int Age { get; set; }
-
-    // 方法：操作私有欄位
-    public void Login() => _loginCount++;
-    public int GetLoginCount() => _loginCount;
-
-    // 覆寫 ToString()：讓 Console.WriteLine(物件) 有意義的輸出
+    // 覆寫 Object.ToString()：讓 Console.WriteLine(物件) 輸出有意義的字串
+    // 格式："ID - Title"，例如："1 - Fix Bugs"
     public override string ToString() =>
-        $"[Person] {FullName}, Age: {Age}";
+        $"{this.ID} - {this.Title}";
+}
+
+// ChangeRequest 繼承 WorkItem
+// 代表「變更請求」，在原有工作項目基礎上多記錄一個來源 ID
+public class ChangeRequest : WorkItem
+{
+    // 記錄這個變更是針對哪一個原始 WorkItem（用 ID 關聯）
+    protected int originalItemID { get; set; }
+
+    // 預設建構子：空實作，自動呼叫父類別 WorkItem() 預設建構子
+    // 繼承時若不寫這個，某些框架（如序列化）會找不到無參數建構子而報錯
+    public ChangeRequest() { }
+
+    // 帶參數的建構子：建立完整的變更請求
+    // 因為父類別欄位是 protected，子類別可以直接存取並賦值
+    public ChangeRequest(string title, string desc, TimeSpan jobLen,
+                         int originalID)
+    {
+        this.ID = GetNextID();            // 繼承自 WorkItem 的方法，取得唯一 ID
+        this.Title = title;
+        this.Description = desc;
+        this.jobLength = jobLen;
+        this.originalItemID = originalID; // 記錄來源 WorkItem 的 ID
+    }
 }
 
