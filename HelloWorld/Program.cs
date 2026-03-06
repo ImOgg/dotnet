@@ -1,5 +1,6 @@
 // See https://aka.ms/new-console-template for more information
 //參考學習 https://ithelp.ithome.com.tw/users/20178767/ironman/8726
+// 到12 章為止，我學不下去了，12章也還沒學完
 using System.Diagnostics.CodeAnalysis;
 
 // ============================
@@ -595,102 +596,155 @@ using System.Diagnostics.CodeAnalysis;
 //         $"[Person] {FullName}, Age: {Age}";
 // }
 
-// 建立 WorkItem 物件
-WorkItem item = new WorkItem("Fix Bugs",
-                            "Fix all bugs in my code branch",
-                            new TimeSpan(3, 4, 0, 0));
+// // 建立 WorkItem 物件
+// WorkItem item = new WorkItem("Fix Bugs",
+//                             "Fix all bugs in my code branch",
+//                             new TimeSpan(3, 4, 0, 0));
 
-// 建立 ChangeRequest 物件
-ChangeRequest change = new ChangeRequest("Change Base Class Design",
-                                        "Add members to the class",
-                                        new TimeSpan(4, 0, 0),
-                                        1);
+// // 建立 ChangeRequest 物件
+// ChangeRequest change = new ChangeRequest("Change Base Class Design",
+//                                         "Add members to the class",
+//                                         new TimeSpan(4, 0, 0),
+//                                         1);
 
-// 使用 WorkItem 的 ToString()
-Console.WriteLine(item.ToString());
+// // 使用 WorkItem 的 ToString()
+// Console.WriteLine(item.ToString());
 
-// 使用繼承自 WorkItem 的 Update()
-change.Update("Change the Design of the Base Class",
-    new TimeSpan(4, 0, 0));
+// // 使用繼承自 WorkItem 的 Update()
+// change.Update("Change the Design of the Base Class",
+//     new TimeSpan(4, 0, 0));
 
-// ChangeRequest 繼承了 WorkItem 的 ToString()
-Console.WriteLine(change.ToString());
+// // ChangeRequest 繼承了 WorkItem 的 ToString()
+// Console.WriteLine(change.ToString());
 
-// WorkItem 類別，繼承自 Object（所有 C# 類別的根類別）
-public class WorkItem
+// // WorkItem 類別，繼承自 Object（所有 C# 類別的根類別）
+// public class WorkItem
+// {
+//     // 靜態欄位：所有 WorkItem 物件共用同一個 currentID 計數器
+//     // static 表示屬於「類別本身」，不屬於任何單一物件
+//     private static int currentID;
+
+//     // protected 屬性：本類別和子類別可存取，外部無法直接讀寫
+//     protected int ID { get; set; }
+//     protected string Title { get; set; }
+//     protected string Description { get; set; }
+//     protected TimeSpan jobLength { get; set; }
+
+//     // 預設建構子（無參數）
+//     // 用途：先建立物件、之後再填資料；或供子類別繼承時呼叫
+//     public WorkItem()
+//     {
+//         ID = 0;
+//         Title = "Default title";
+//         Description = "Default description.";
+//         jobLength = new TimeSpan();
+//     }
+
+//     // 帶參數的建構子
+//     // 用途：一次建立並填入所有資料，ID 自動遞增
+//     public WorkItem(string title, string desc, TimeSpan joblen)
+//     {
+//         this.ID = GetNextID();   // 取得下一個唯一 ID
+//         this.Title = title;
+//         this.Description = desc;
+//         this.jobLength = joblen;
+//     }
+
+//     // 靜態建構子：程式啟動時只執行一次，用來初始化靜態欄位
+//     // 不能有參數、不能有存取修飾詞（public/private）
+//     static WorkItem() => currentID = 0;
+
+//     // 產生下一個 ID：每次呼叫都讓 currentID +1 再回傳
+//     // ++currentID 是前綴遞增（先加後回傳），確保 ID 從 1 開始
+//     protected int GetNextID() => ++currentID;
+
+//     // 更新工作項目的標題和預估時間
+//     public void Update(string title, TimeSpan joblen)
+//     {
+//         this.Title = title;
+//         this.jobLength = joblen;
+//     }
+
+//     // 覆寫 Object.ToString()：讓 Console.WriteLine(物件) 輸出有意義的字串
+//     // 格式："ID - Title"，例如："1 - Fix Bugs"
+//     public override string ToString() =>
+//         $"{this.ID} - {this.Title}";
+// }
+
+// // ChangeRequest 繼承 WorkItem
+// // 代表「變更請求」，在原有工作項目基礎上多記錄一個來源 ID
+// public class ChangeRequest : WorkItem
+// {
+//     // 記錄這個變更是針對哪一個原始 WorkItem（用 ID 關聯）
+//     protected int originalItemID { get; set; }
+
+//     // 預設建構子：空實作，自動呼叫父類別 WorkItem() 預設建構子
+//     // 繼承時若不寫這個，某些框架（如序列化）會找不到無參數建構子而報錯
+//     public ChangeRequest() { }
+
+//     // 帶參數的建構子：建立完整的變更請求
+//     // 因為父類別欄位是 protected，子類別可以直接存取並賦值
+//     public ChangeRequest(string title, string desc, TimeSpan jobLen,
+//                          int originalID)
+//     {
+//         this.ID = GetNextID();            // 繼承自 WorkItem 的方法，取得唯一 ID
+//         this.Title = title;
+//         this.Description = desc;
+//         this.jobLength = jobLen;
+//         this.originalItemID = originalID; // 記錄來源 WorkItem 的 ID
+//     }
+// }
+
+ServiceImplementation service = new ServiceImplementation();
+// service.Configure(...) ❌ 不能直接呼叫
+((IConfigurable)service).Configure(new InternalConfiguration { Setting = "ABC" }); 
+interface IEquatable<T>
 {
-    // 靜態欄位：所有 WorkItem 物件共用同一個 currentID 計數器
-    // static 表示屬於「類別本身」，不屬於任何單一物件
-    private static int currentID;
-
-    // protected 屬性：本類別和子類別可存取，外部無法直接讀寫
-    protected int ID { get; set; }
-    protected string Title { get; set; }
-    protected string Description { get; set; }
-    protected TimeSpan jobLength { get; set; }
-
-    // 預設建構子（無參數）
-    // 用途：先建立物件、之後再填資料；或供子類別繼承時呼叫
-    public WorkItem()
-    {
-        ID = 0;
-        Title = "Default title";
-        Description = "Default description.";
-        jobLength = new TimeSpan();
-    }
-
-    // 帶參數的建構子
-    // 用途：一次建立並填入所有資料，ID 自動遞增
-    public WorkItem(string title, string desc, TimeSpan joblen)
-    {
-        this.ID = GetNextID();   // 取得下一個唯一 ID
-        this.Title = title;
-        this.Description = desc;
-        this.jobLength = joblen;
-    }
-
-    // 靜態建構子：程式啟動時只執行一次，用來初始化靜態欄位
-    // 不能有參數、不能有存取修飾詞（public/private）
-    static WorkItem() => currentID = 0;
-
-    // 產生下一個 ID：每次呼叫都讓 currentID +1 再回傳
-    // ++currentID 是前綴遞增（先加後回傳），確保 ID 從 1 開始
-    protected int GetNextID() => ++currentID;
-
-    // 更新工作項目的標題和預估時間
-    public void Update(string title, TimeSpan joblen)
-    {
-        this.Title = title;
-        this.jobLength = joblen;
-    }
-
-    // 覆寫 Object.ToString()：讓 Console.WriteLine(物件) 輸出有意義的字串
-    // 格式："ID - Title"，例如："1 - Fix Bugs"
-    public override string ToString() =>
-        $"{this.ID} - {this.Title}";
+    bool Equals(T obj);
 }
 
-// ChangeRequest 繼承 WorkItem
-// 代表「變更請求」，在原有工作項目基礎上多記錄一個來源 ID
-public class ChangeRequest : WorkItem
+public class Car : IEquatable<Car>
 {
-    // 記錄這個變更是針對哪一個原始 WorkItem（用 ID 關聯）
-    protected int originalItemID { get; set; }
+    public string? Make { get; set; }
+    public string? Model { get; set; }
+    public string? Year { get; set; }
 
-    // 預設建構子：空實作，自動呼叫父類別 WorkItem() 預設建構子
-    // 繼承時若不寫這個，某些框架（如序列化）會找不到無參數建構子而報錯
-    public ChangeRequest() { }
-
-    // 帶參數的建構子：建立完整的變更請求
-    // 因為父類別欄位是 protected，子類別可以直接存取並賦值
-    public ChangeRequest(string title, string desc, TimeSpan jobLen,
-                         int originalID)
+    // 必須實作 IEquatable<T> 的 Equals 方法
+    public bool Equals(Car? car)
     {
-        this.ID = GetNextID();            // 繼承自 WorkItem 的方法，取得唯一 ID
-        this.Title = title;
-        this.Description = desc;
-        this.jobLength = jobLen;
-        this.originalItemID = originalID; // 記錄來源 WorkItem 的 ID
+        return (this.Make, this.Model, this.Year) ==
+               (car?.Make, car?.Model, car?.Year);
+    }
+}
+public interface ILoggable
+{
+    void Log(string message);
+}
+
+public class Logger : ILoggable
+{
+    public void Log(string message)   // public + 符合簽章
+    {
+        Console.WriteLine($"Log: {message}");
+    }
+}
+
+internal class InternalConfiguration
+{
+    public string Setting { get; set; } = "";
+}
+
+internal interface IConfigurable
+{
+    void Configure(InternalConfiguration config);
+}
+
+public class ServiceImplementation : IConfigurable
+{
+    // 明確實作，方法前不加 public
+    void IConfigurable.Configure(InternalConfiguration config)
+    {
+        Console.WriteLine($"Configured with: {config.Setting}");
     }
 }
 
