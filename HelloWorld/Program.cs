@@ -338,3 +338,64 @@
 //         }
 //     }
 // }
+
+// public class Person
+// {
+//     public string FirstName = default!;
+// }
+
+// public static class ClassTypeExample
+// {
+//     public static void Main()
+//     {
+//         Person p1 = new() { FirstName = "John" };
+//         Person p2 = new() { FirstName = "John" };
+//         // Equals 是比較兩個物件是否相等的方法。
+//         Console.WriteLine($"p1 = p2: {p1.Equals(p2)}");
+//     }
+// }
+// 輸出：p1 = p2: False
+
+// namespace methods;
+
+// public class Person
+// {
+//     public string FirstName = default!;
+
+//     public override bool Equals(object? obj) =>
+//         obj is Person p2 &&
+//         FirstName.Equals(p2.FirstName);
+
+//     public override int GetHashCode() => FirstName.GetHashCode();
+// }
+
+// public static class Example
+// {
+//     public static void Main()
+//     {
+//         Person p1 = new() { FirstName = "John" };
+//         Person p2 = new() { FirstName = "John" };
+//         Console.WriteLine($"p1 = p2: {p1.Equals(p2)}");
+//     }
+// }
+// 輸出：p1 = p2: True
+
+// Value Type傳值
+// 當把值型別 (如 int, double, struct) 傳遞給方法時，
+// 會傳遞「值的複本」，Method內對參數的修改，不會影響到原本變數。
+// public static class ByValueExample
+// {
+//     public static void Main()
+//     {
+//         var value = 20;
+//         Console.WriteLine("In Main, value = {0}", value);
+//         ModifyValue(value);
+//         Console.WriteLine("Back in Main, value = {0}", value);
+//     }
+
+//     static void ModifyValue(int i)
+//     {
+//         i = 30;
+//         Console.WriteLine("In ModifyValue, parameter value = {0}", i);
+//     }
+// }
