@@ -276,32 +276,32 @@
 //     }
 // }
 
-public static class SquareExample
-{
-    // 程式進入點
-    public static void Main()
-    {
-        // 用變數呼叫 Square：計算 4 的平方
-        int num = 4;
-        int productA = Square(num);       // productA = 16
-        Console.WriteLine($"The square of {num} is {productA}.");
-        // 用整數字面值呼叫 Square：計算 12 的平方
-        int productB = Square(12);        // productB = 144
-        Console.WriteLine($"The square of 12 is {productB}.");
-        // 用運算式呼叫 Square：計算 (16 * 3) = 48 的平方
-        int productC = Square(productA * 3);  // productC = 2304
-        Console.WriteLine($"The square of {productA} * 3 is {productC}.");
-        // ⚠️ 注意：這裡只有計算，沒有 Console.WriteLine()
-        //    所以執行後 terminal 不會有任何輸出！
-    }
+// public static class SquareExample
+// {
+//     // 程式進入點
+//     public static void Main()
+//     {
+//         // 用變數呼叫 Square：計算 4 的平方
+//         int num = 4;
+//         int productA = Square(num);       // productA = 16
+//         Console.WriteLine($"The square of {num} is {productA}.");
+//         // 用整數字面值呼叫 Square：計算 12 的平方
+//         int productB = Square(12);        // productB = 144
+//         Console.WriteLine($"The square of 12 is {productB}.");
+//         // 用運算式呼叫 Square：計算 (16 * 3) = 48 的平方
+//         int productC = Square(productA * 3);  // productC = 2304
+//         Console.WriteLine($"The square of {productA} * 3 is {productC}.");
+//         // ⚠️ 注意：這裡只有計算，沒有 Console.WriteLine()
+//         //    所以執行後 terminal 不會有任何輸出！
+//     }
 
-    // 計算整數的平方（i * i）並回傳結果
-    static int Square(int i)
-    {
-        int input = i;
-        return input * input;
-    }
-}
+//     // 計算整數的平方（i * i）並回傳結果
+//     static int Square(int i)
+//     {
+//         int input = i;
+//         return input * input;
+//     }
+// }
 
 // namespace MotorCycleExample
 // {
