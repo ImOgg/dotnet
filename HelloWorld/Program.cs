@@ -817,3 +817,183 @@ using System.Diagnostics.CodeAnalysis;
 //         (this.Name, this.Size) == (other?.Name, other?.Size);
 // }
 
+
+// // ============================
+// // 11. 泛型（Generics）- 飲料店情境
+// // ============================
+// // 泛型的主要目的：
+// //   1. 避免重複撰寫相同邏輯的程式碼
+// //   2. 型別安全（type safety）：編譯時期就能發現型別錯誤
+// //   3. 效能更好：不需要用 object 裝載所有資料，省去 boxing/unboxing 的開銷
+
+// // ── 問題：沒有泛型時，程式碼重複 ──
+// // 飲料店要記錄不同備料的備料盒，沒有泛型就要各寫一個類別：
+// //
+// //   public class PearlBox { public Pearl Item { get; set; } }
+// //   public class SyrupBox { public Syrup Item { get; set; } }
+// //   public class IceBox   { public Ice   Item { get; set; } }
+// //   → 邏輯完全相同，卻要寫三次！
+// //
+// // ── 解決：泛型類別 PrepBox<T> ──
+// // <T> 是「型別參數」，T 是佔位符（placeholder）
+// // 使用時再指定 T 的真正型別，例如：PrepBox<Pearl>、PrepBox<Syrup>
+
+// // 建立備料盒（頂層語句必須在所有類別定義之前）
+// var pearlBox = new PrepBox<Pearl>(new Pearl("黑糖珍珠", 100));
+// var syrupBox = new PrepBox<Syrup>(new Syrup("焦糖", 20));
+// var numBox   = new PrepBox<int>(4);  // T 也可以是基本型別
+
+// pearlBox.ShowInfo();  // 輸出：[備料盒] 黑糖珍珠（庫存：100）
+// syrupBox.ShowInfo();  // 輸出：[備料盒] 焦糖糖漿（庫存：20）
+// numBox.ShowInfo();    // 輸出：[備料盒] 4
+
+// // 型別安全：T 是 Pearl，就只能放 Pearl，不能放 Syrup
+// // pearlBox = new PrepBox<Pearl>(new Syrup("焦糖", 20));  // ❌ 編譯錯誤
+
+// // 使用泛型方法
+// string drink1 = "珍珠奶茶";
+// string drink2 = "抹茶拿鐵";
+// DrinkUtils.Swap(ref drink1, ref drink2);
+// Console.WriteLine($"{drink1} / {drink2}");  // 輸出：抹茶拿鐵 / 珍珠奶茶
+
+// int price1 = 60;
+// int price2 = 80;
+// DrinkUtils.Swap(ref price1, ref price2);
+// Console.WriteLine($"{price1} / {price2}");  // 輸出：80 / 60
+
+// // ── 類別定義區（所有類別必須放在頂層語句之後）──
+
+// // ── 泛型類別 ──
+// // <T>：型別參數（type parameter），T 只是慣例名稱，也可以用其他名稱
+// public class PrepBox<T>
+// {
+//     // T 可以作為欄位、方法參數、回傳值的型別
+//     public T Item { get; }
+
+//     public PrepBox(T item)
+//     {
+//         Item = item;
+//     }
+
+//     public void ShowInfo() =>
+//         Console.WriteLine($"[備料盒] {Item}");
+// }
+
+// // ── 泛型方法（Generic Method）──
+// // 方法層級也可以宣告型別參數 <T>，不需要整個類別都是泛型
+// public static class DrinkUtils
+// {
+//     // 交換兩個備料盒的內容（任意型別都適用，不需要為每種型別各寫一個 Swap）
+//     public static void Swap<T>(ref T a, ref T b)
+//     {
+//         T temp = a;
+//         a = b;
+//         b = temp;
+//     }
+// }
+
+// // ── 備料類別 ──
+// public class Pearl
+// {
+//     public string Name { get; }
+//     public int Stock { get; set; }
+//     public Pearl(string name, int stock) { Name = name; Stock = stock; }
+//     public override string ToString() => $"{Name}（庫存：{Stock}）";
+// }
+
+// public class Syrup
+// {
+//     public string Flavor { get; }
+//     public int Stock { get; set; }
+//     public Syrup(string flavor, int stock) { Flavor = flavor; Stock = stock; }
+//     public override string ToString() => $"{Flavor}糖漿（庫存：{Stock}）";
+// }
+
+
+// ============================
+// 12. 集合（Collections）- 飲料店情境
+// ============================
+// 常見集合一覽：
+//   List<T>                   最常用，動態陣列，可新增/刪除/索引
+//   Dictionary<TKey, TValue>  鍵值對，用 key 快速查詢 value
+//   HashSet<T>                不重複集合，適合存在性檢查
+//   Queue<T>                  先進先出（FIFO），模擬排隊
+//   Stack<T>                  後進先出（LIFO），模擬疊放
+
+// // ── List<T>：今日訂單清單 ──
+// Console.WriteLine("=== List<T> ===");
+// List<string> orders = new();
+// orders.Add("珍珠奶茶");
+// orders.Add("抹茶拿鐵");
+// orders.Add("焦糖瑪奇朵");
+// orders.Add("珍珠奶茶");   // List 允許重複
+
+// Console.WriteLine($"訂單數量：{orders.Count}");  // 訂單數量：4
+// Console.WriteLine(orders[0]);                    // 珍珠奶茶（索引存取）
+
+// orders.Remove("抹茶拿鐵");
+// Console.WriteLine($"移除後數量：{orders.Count}");  // 移除後數量：3
+
+// foreach (var order in orders)
+//     Console.WriteLine($"  - {order}");
+
+// Console.WriteLine(orders.Contains("珍珠奶茶"));  // True
+// Console.WriteLine(orders.IndexOf("珍珠奶茶"));   // 0
+
+// // ── Dictionary<TKey, TValue>：飲料菜單（名稱 → 價格）──
+// Console.WriteLine("\n=== Dictionary<TKey, TValue> ===");
+// Dictionary<string, int> menu = new()
+// {
+//     ["珍珠奶茶"]   = 65,
+//     ["抹茶拿鐵"]   = 75,
+//     ["焦糖瑪奇朵"] = 80,
+// };
+
+// menu["冬瓜茶"] = 45;  // 新增品項
+
+// // TryGetValue：安全查詢，避免 key 不存在時拋出例外
+// if (menu.TryGetValue("珍珠奶茶", out int price))
+//     Console.WriteLine($"珍珠奶茶：${price}");
+
+// if (!menu.TryGetValue("木瓜牛奶", out _))
+//     Console.WriteLine("菜單上沒有木瓜牛奶");
+
+// foreach (var item in menu)
+//     Console.WriteLine($"{item.Key}：${item.Value}");
+
+// // ── HashSet<T>：已點過的品項（不重複）──
+// Console.WriteLine("\n=== HashSet<T> ===");
+// HashSet<string> orderedToday = new();
+// orderedToday.Add("珍珠奶茶");
+// orderedToday.Add("抹茶拿鐵");
+// orderedToday.Add("珍珠奶茶");  // 重複，會被忽略
+
+// Console.WriteLine($"今日已點品項數：{orderedToday.Count}");  // 2（不是 3）
+// Console.WriteLine(orderedToday.Contains("珍珠奶茶"));        // True
+// Console.WriteLine(orderedToday.Contains("冬瓜茶"));          // False
+
+// // ── Queue<T>：取餐號碼牌（FIFO，先到先服務）──
+// Console.WriteLine("\n=== Queue<T> ===");
+// Queue<string> waitQueue = new();
+// waitQueue.Enqueue("01號 - 珍珠奶茶");
+// waitQueue.Enqueue("02號 - 抹茶拿鐵");
+// waitQueue.Enqueue("03號 - 焦糖瑪奇朵");
+
+// Console.WriteLine($"等待中：{waitQueue.Count} 杯");
+// Console.WriteLine($"下一杯：{waitQueue.Peek()}");       // 看下一位但不取出
+// Console.WriteLine($"出餐：{waitQueue.Dequeue()}");
+// Console.WriteLine($"出餐：{waitQueue.Dequeue()}");
+// Console.WriteLine($"剩餘：{waitQueue.Count} 杯");
+
+// // ── Stack<T>：杯子疊放（LIFO，後進先出）──
+// Console.WriteLine("\n=== Stack<T> ===");
+// Stack<string> cupStack = new();
+// cupStack.Push("底部杯");
+// cupStack.Push("中間杯");
+// cupStack.Push("頂部杯");   // 最後放，最先被拿
+
+// Console.WriteLine($"最上面：{cupStack.Peek()}");    // 看頂部但不取出
+// Console.WriteLine($"拿走：{cupStack.Pop()}");
+// Console.WriteLine($"拿走：{cupStack.Pop()}");
+// Console.WriteLine($"剩餘：{cupStack.Count} 個");
+
