@@ -9,3 +9,8 @@
 .vs/
 *.user
 *.suo
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
