@@ -1,6 +1,6 @@
 // See https://aka.ms/new-console-template for more information
 //參考學習 https://ithelp.ithome.com.tw/users/20178767/ironman/8726
-// 到12 章為止，我學不下去了，12章也還沒學完
+// 到12 章為止，我學不下去了，Day 12 也還沒學完
 using System.Diagnostics.CodeAnalysis;
 
 // ============================
@@ -249,6 +249,20 @@ using System.Diagnostics.CodeAnalysis;
 //         Console.WriteLine($"Not alphanumeric character: {ch}");
 //     }
 // }
+
+// ============================
+// 10. abstract 修飾詞
+// ============================
+// abstract 用於類別或成員（方法、屬性、索引子、事件），
+// 表示該成員沒有完整實作，必須由衍生類別（derived class）來實作。
+//
+// 抽象類別（abstract class）：
+//   - 不能被直接建立物件（new）
+//   - 可包含抽象成員與已實作成員
+//   - 常作為「基底類別」(blueprint) 提供共用功能
+//   - 可以有欄位、已實作的方法、屬性、建構子
+//   - 可以有 abstract 方法或屬性，衍生類別必須 override
+//   - 不能與 sealed 同時使用（sealed 代表不能被繼承）
 
 // namespace MotorCycleExample
 // {
@@ -695,56 +709,111 @@ using System.Diagnostics.CodeAnalysis;
 //     }
 // }
 
-ServiceImplementation service = new ServiceImplementation();
-// service.Configure(...) ❌ 不能直接呼叫
-((IConfigurable)service).Configure(new InternalConfiguration { Setting = "ABC" }); 
-interface IEquatable<T>
-{
-    bool Equals(T obj);
-}
+// ============================
+// 介面（Interface）- 飲料店情境
+// ============================
 
-public class Car : IEquatable<Car>
-{
-    public string? Make { get; set; }
-    public string? Model { get; set; }
-    public string? Year { get; set; }
+// 情境說明：
+// 飲料店店員同時面對「顧客」和「廚房」兩種角色。
+// 顧客可以直接叫店員報菜單、收款；
+// 但下訂單給廚房、通知出餐這些內部操作，
+// 不應該讓顧客隨意呼叫，所以用「明確介面實作」隱藏起來。
 
-    // 必須實作 IEquatable<T> 的 Equals 方法
-    public bool Equals(Car? car)
-    {
-        return (this.Make, this.Model, this.Year) ==
-               (car?.Make, car?.Model, car?.Year);
-    }
-}
-public interface ILoggable
-{
-    void Log(string message);
-}
+// // 建立店員物件，名字傳入建構子
+// DrinkShopStaff staff = new DrinkShopStaff("小美");
 
-public class Logger : ILoggable
-{
-    public void Log(string message)   // public + 符合簽章
-    {
-        Console.WriteLine($"Log: {message}");
-    }
-}
+// // ✅ 顧客端：ICustomerFacing 的方法是 public，可以直接透過物件呼叫
+// staff.ShowMenu();
+// staff.TakePayment(120);
 
-internal class InternalConfiguration
-{
-    public string Setting { get; set; } = "";
-}
+// // ❌ 廚房功能不能直接呼叫（明確介面實作不會出現在類別的公開成員上）
+// // staff.TakeOrder("珍珠奶茶", 2);  → 編譯錯誤
 
-internal interface IConfigurable
-{
-    void Configure(InternalConfiguration config);
-}
+// // ✅ 廚房端：將 staff 強制轉型成 IKitchenFacing，才能呼叫廚房方法
+// // 這就是「明確介面實作」的使用方式：(介面型別)物件.方法()
+// ((IKitchenFacing)staff).TakeOrder("珍珠奶茶", 2);
+// ((IKitchenFacing)staff).NotifyKitchen();
 
-public class ServiceImplementation : IConfigurable
-{
-    // 明確實作，方法前不加 public
-    void IConfigurable.Configure(InternalConfiguration config)
-    {
-        Console.WriteLine($"Configured with: {config.Setting}");
-    }
-}
+// // ──────────────────────────────
+// // IEquatable<T>：泛型介面，讓類別定義自己的「相等」規則
+// // 預設 class 是比較記憶體位址（參考相等），不是比較內容
+// // 實作 IEquatable<T> 後，可以按照欄位值來判斷兩個物件是否「一樣」
+// Drink d1 = new Drink { Name = "珍珠奶茶", Size = "大杯" };
+// Drink d2 = new Drink { Name = "珍珠奶茶", Size = "大杯" };  // 內容相同
+// Drink d3 = new Drink { Name = "綠茶",     Size = "中杯" };  // 內容不同
+// Console.WriteLine($"\nd1 == d2：{d1.Equals(d2)}");  // True（名稱和大小都一樣）
+// Console.WriteLine($"d1 == d3：{d1.Equals(d3)}");    // False
+
+// ──────────────────────────────
+// 顧客介面：定義「面向顧客」的功能契約
+// 任何實作此介面的類別，都必須提供這兩個方法
+// 命名慣例：介面名稱前面加「I」，是 C# 業界規定的命名慣例（非語法要求）
+// 目的是讓人一眼就能區分「介面」和「類別」，例如：
+//   ICustomerFacing → I 開頭 = 介面
+//   DrinkShopStaff  → 沒有 I = 類別
+// .NET 內建型別也遵守此慣例：IEnumerable、IDisposable、IEquatable<T> ...
+// public interface ICustomerFacing
+// {
+//     void ShowMenu();                    // 展示菜單
+//     void TakePayment(decimal amount);   // 收款
+// }
+
+// 廚房介面：定義「面向廚房」的功能契約
+// 這些操作屬於內部流程，不應該讓顧客直接呼叫
+// public interface IKitchenFacing
+// {
+//     void TakeOrder(string item, int quantity);  // 傳遞訂單給廚房
+//     void NotifyKitchen();                       // 通知廚房出餐
+// }
+
+// ── 繼承 vs 實作 用詞比較 ──
+// | 情況              | 說法            | 符號 |
+// | class 對 interface | 實作 implement  |  :   |
+// | class 對 class     | 繼承 inherit    |  :   |
+// 雖然都是 : 但意思不同，面試時說錯用詞會扣分！
+
+// 店員類別：同時實作 ICustomerFacing 和 IKitchenFacing 兩個介面
+// 語法：class 類別名稱 : 介面1, 介面2
+// public class DrinkShopStaff : ICustomerFacing, IKitchenFacing
+// {
+//     private string _name;  // 私有欄位：儲存店員名字
+
+//     // 建構子：建立物件時傳入店員名字
+//     public DrinkShopStaff(string name) => _name = name;
+
+//     // ── ICustomerFacing 實作（一般實作，加 public，可直接呼叫）──
+
+//     // 展示菜單給顧客看
+//     public void ShowMenu() =>
+//         Console.WriteLine($"[{_name}] 菜單：珍珠奶茶 $60 / 綠茶 $40 / 拿鐵 $80");
+
+//     // 向顧客收款
+//     public void TakePayment(decimal amount) =>
+//         Console.WriteLine($"[{_name}] 收款 ${amount}，謝謝光臨！");
+
+//     // ── IKitchenFacing 明確介面實作（不加 public，外部無法直接呼叫）──
+//     // 語法：void 介面名稱.方法名稱() { ... }
+//     // 效果：這個方法只有在「以 IKitchenFacing 型別看待」時才看得到
+
+//     // 傳遞訂單給廚房
+//     void IKitchenFacing.TakeOrder(string item, int quantity) =>
+//         Console.WriteLine($"[廚房訂單] {item} x{quantity}，請備料");
+
+//     // 通知廚房有新訂單
+//     void IKitchenFacing.NotifyKitchen() =>
+//         Console.WriteLine("[廚房通知] 新訂單已送出，請出餐");
+// }
+
+// 飲料類別：實作 IEquatable<Drink>，自訂兩杯飲料的比較邏輯
+// 語法：class 類別名稱 : IEquatable<自己>
+// public class Drink : IEquatable<Drink>
+// {
+//     public string Name { get; set; } = "";  // 飲料名稱
+//     public string Size { get; set; } = "";  // 杯型
+
+//     // 實作 Equals：只要名稱和杯型都相同，就視為同一杯飲料
+//     // Tuple 比較語法：(a, b) == (c, d)  →  a==c 且 b==d
+//     public bool Equals(Drink? other) =>
+//         (this.Name, this.Size) == (other?.Name, other?.Size);
+// }
 
