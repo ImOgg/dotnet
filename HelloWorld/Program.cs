@@ -1,6 +1,6 @@
 // See https://aka.ms/new-console-template for more information
 //參考學習 https://ithelp.ithome.com.tw/users/20178767/ironman/8726
-// 到12 章為止，我學不下去了，Day 12 也還沒學完
+// 到12 章為止，我學不下去了，Day 18 還沒開始學 Day18
 using System.Diagnostics.CodeAnalysis;
 
 // ============================
