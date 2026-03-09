@@ -88,6 +88,25 @@ dotnet ef database update #執行Migration
 
 ---
 
+## Laravel vs .NET 對照
+
+| Laravel | .NET | 說明 |
+|---------|------|------|
+| Model（`User.php`） | Entity（`AppUser.cs`） | 對應資料表的類別 |
+| `$table = 'users'` | `DbSet<AppUser> Users` | 指定操作哪張資料表 |
+| Eloquent ORM | Entity Framework Core | ORM 框架 |
+| `User::all()` | `context.Users.ToList()` | 取全部資料 |
+| `User::find($id)` | `context.Users.Find(id)` | 依 id 取單筆 |
+
+### .NET 的差異
+
+Laravel 的 Model 直接包含資料庫操作邏輯，.NET 拆成兩層：
+
+- **Entity**（`Entities/AppUser.cs`）→ 單純定義資料結構，對應資料表欄位
+- **DbContext**（`Data/AppDbContext.cs`）→ 負責資料庫操作，類似 Laravel 的 `DB` facade
+
+---
+
 ## 學習心得
 
 - dotnet 沒有像 Laravel 那樣集中式管理 Route 的地方，通常會寫在 Controller 上
