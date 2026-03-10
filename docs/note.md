@@ -90,6 +90,7 @@ dotnet ef migrations -h                                # 查看 migrations 子�
 dotnet ef migrations add InitialCreate -o Data/Migrations  # 新增 Migration
 dotnet ef database update #執行Migration
 dotnet ef migrations add UserEntityUpdated #新增 更新migration的檔案
+dotnet ef database drop
 ```
 
 > ⚠️ **執行 migration 前必須先停止 API**

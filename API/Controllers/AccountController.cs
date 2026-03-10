@@ -17,7 +17,7 @@ public class AccountController(AppDbContext context) : BaseApiController
     // 這樣做的好處是可以清楚定義前端需要提供哪些資料，並且在後端進行驗證和轉換
     // 原本在前端直接傳送 AppUser 物件，這樣不太安全也不靈活，因為 AppUser 包含了密碼雜湊和鹽值等敏感資訊
 
-    public async Task<IActionResult> Register(RegisterDTO registerDTO)
+    public async Task<ActionResult<AppUser>> Register(RegisterDTO registerDTO)
     {
         if (await UserExists(registerDTO.Email)) return BadRequest("Email already in use");
 
@@ -33,6 +33,21 @@ public class AccountController(AppDbContext context) : BaseApiController
         context.Users.Add(user);
         await context.SaveChangesAsync();
        
+        return Ok(user);
+    }
+    [HttpPost("login")] // api/account/login
+    public async Task<ActionResult<AppUser>> Login(LoginDTO loginDTO)
+    {
+        var user = await context.Users.SingleOrDefaultAsync(x => x.Email == loginDTO.Email);
+        if (user == null) return Unauthorized("Invalid email");
+
+        var hmac = new HMACSHA512(user.PasswordSalt);
+        var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(loginDTO.Password));
+        for (int i = 0; i < computedHash.Length; i++)
+        {
+            if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
+        }
+
         return Ok(user);
     }
 
