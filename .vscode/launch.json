@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "c# API Debug",
+            "type": "coreclr",
+            "request": "attach",
+            "projectPath":"${workspaceFolder}/src/Api/Api.csproj",
+        },
+        {
+            "name": ".NET Core Attach",
+            "type":"coreclr",
+            "request":"attach",
+        }
+    ]
+}
