@@ -21,7 +21,4 @@ public class RegisterDTO
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
 
-
-
-
 }
