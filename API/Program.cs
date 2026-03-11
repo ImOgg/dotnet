@@ -68,6 +68,11 @@ var app = builder.Build();
 // 不是 HTTPS 就不需要重定向
 // app.UseHttpsRedirection();
 
+// 開發環境下顯示詳細錯誤頁面，方便除錯
+// 但在Properties/launchSettings.json中將環境變數設定為 Production，所以這段程式碼會被註解掉，避免在生產環境中暴露詳細錯誤資訊
+// app.UseDeveloperExceptionPage();
+
+
 // 啟用 CORS（跨來源資源共享），允許前端應用程式從不同的來源訪問 API
 app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000")); 
 
