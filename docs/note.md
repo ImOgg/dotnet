@@ -162,10 +162,11 @@ dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
 加入 JWT 金鑰，長度至少 64 字元（太短會拋出 `ArgumentException`）：
 
 ```json
-"JWT": {
-  "Key": "your-super-secret-key-at-least-64-characters-long-xxxxxxxxxxxx"
-}
+"TokenKey": "your-super-secret-key-at-least-64-characters-long-xxxxxxxxxxxx"
 ```
+
+> ⚠️ 此專案直接用頂層 `"TokenKey"` 讀取（`config["TokenKey"]`），
+> 不是 `"JWT:Key"` 巢狀格式，兩種寫法都合法，但要跟 `TokenService.cs` 的讀法一致。
 
 ### DI 註冊（Program.cs）
 
