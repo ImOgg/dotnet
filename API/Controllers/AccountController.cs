@@ -1,4 +1,4 @@
-using System;
+using System.Text;
 using API.Data;
 using Microsoft.AspNetCore.Mvc;
 using API.Entities;
@@ -26,7 +26,7 @@ public class AccountController(AppDbContext context) : BaseApiController
         {
             DisplayName = registerDTO.DisplayName,
             Email = registerDTO.Email,
-            PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(registerDTO.Password)),
+            PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
             PasswordSalt = hmac.Key
         };
 
@@ -38,11 +38,16 @@ public class AccountController(AppDbContext context) : BaseApiController
     [HttpPost("login")] // api/account/login
     public async Task<ActionResult<AppUser>> Login(LoginDTO loginDTO)
     {
+        // SingleOrDefaultAsync：從資料庫查詢符合條件的「單一筆」資料
+        // - 若找到一筆 → 回傳該物件
+        // - 若找不到  → 回傳 null（預設值），不會拋例外
+        // - 若找到多筆 → 拋出 InvalidOperationException（與 FirstOrDefaultAsync 的差異）
+        // 來自 Microsoft.EntityFrameworkCore 命名空間（EF Core 的擴充方法）
         var user = await context.Users.SingleOrDefaultAsync(x => x.Email == loginDTO.Email);
         if (user == null) return Unauthorized("Invalid email");
 
         var hmac = new HMACSHA512(user.PasswordSalt);
-        var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(loginDTO.Password));
+        var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDTO.Password));
         for (int i = 0; i < computedHash.Length; i++)
         {
             if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
