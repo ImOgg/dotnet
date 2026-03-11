@@ -5,57 +5,96 @@ using API.Entities;
 using System.Security.Cryptography;
 using API.DTOs;
 using Microsoft.EntityFrameworkCore;
+using API.Interfaces;
 
 
 namespace API.Controllers;
 
-public class AccountController(AppDbContext context) : BaseApiController
+// AccountController：處理使用者帳號相關的 API（註冊、登入）
+//
+// 【建構子注入】
+// - AppDbContext context：存取資料庫
+// - ITokenService tokenService：產生 JWT Token（依賴介面而非具體類別，方便測試與替換）
+public class AccountController(AppDbContext context, ITokenService tokenService) : BaseApiController
 {
-    [HttpPost("register")] // api/account/register
-
-    // 使用 RegisterDTO 作為參數，從 HTTP 請求的 body 中接收註冊資料
-    // 這樣做的好處是可以清楚定義前端需要提供哪些資料，並且在後端進行驗證和轉換
-    // 原本在前端直接傳送 AppUser 物件，這樣不太安全也不靈活，因為 AppUser 包含了密碼雜湊和鹽值等敏感資訊
-
-    public async Task<ActionResult<AppUser>> Register(RegisterDTO registerDTO)
+    // POST api/account/register — 使用者註冊
+    //
+    // 【為什麼用 RegisterDTO 而非 AppUser？】
+    // 直接接收 AppUser 會讓前端誤以為需要傳 PasswordHash/Salt 等欄位，
+    // 且萬一 API 有 binding 問題，可能讓攻擊者覆蓋不應被設定的欄位（Mass Assignment 攻擊）。
+    // RegisterDTO 只暴露「前端應該傳入」的欄位：DisplayName、Email、Password。
+    //
+    // 【回傳 UserDTO 而非 AppUser？】
+    // AppUser 含有 PasswordHash、PasswordSalt 等敏感欄位，絕不能回傳給前端。
+    // UserDTO 只包含安全的公開資訊，並附上 JWT Token 讓前端不需再次登入。
+    [HttpPost("register")]
+    public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDTO)
     {
+        // 若 Email 已存在則拒絕註冊
         if (await UserExists(registerDTO.Email)) return BadRequest("Email already in use");
 
-        var hmac = new HMACSHA512();
+        // HMACSHA512：使用隨機產生的 Key 作為「鹽」，對密碼做雜湊
+        // using 確保 hmac 用完後釋放資源（實作 IDisposable）
+        using var hmac = new HMACSHA512();
+
         var user = new AppUser
         {
             DisplayName = registerDTO.DisplayName,
             Email = registerDTO.Email,
+            // 將密碼轉成 UTF-8 bytes 後雜湊；每次 new HMACSHA512() 的 Key 都不同，
+            // 所以相同密碼雜湊出的結果也不同（防彩虹表攻擊）
             PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
+            // 儲存 Key（鹽），登入時需要用同一把 Key 重現雜湊來驗證密碼
             PasswordSalt = hmac.Key
         };
 
         context.Users.Add(user);
         await context.SaveChangesAsync();
-       
-        return Ok(user);
+
+        // 回傳 UserDTO：包含 JWT Token，讓前端註冊後立即取得身份驗證憑證
+        return new UserDTO
+        {
+            Id = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            ImageUrl = user.ImageUrl,
+            Token = tokenService.CreateToken(user)
+        };
     }
-    [HttpPost("login")] // api/account/login
-    public async Task<ActionResult<AppUser>> Login(LoginDTO loginDTO)
+
+    // POST api/account/login — 使用者登入
+    [HttpPost("login")]
+    public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDTO)
     {
-        // SingleOrDefaultAsync：從資料庫查詢符合條件的「單一筆」資料
-        // - 若找到一筆 → 回傳該物件
-        // - 若找不到  → 回傳 null（預設值），不會拋例外
-        // - 若找到多筆 → 拋出 InvalidOperationException（與 FirstOrDefaultAsync 的差異）
-        // 來自 Microsoft.EntityFrameworkCore 命名空間（EF Core 的擴充方法）
+        // SingleOrDefaultAsync：查詢單一筆符合 Email 的使用者
+        // - 找到一筆 → 回傳該物件
+        // - 找不到  → 回傳 null（不會拋例外）
+        // - 找到多筆 → 拋 InvalidOperationException（與 FirstOrDefaultAsync 的差異）
         var user = await context.Users.SingleOrDefaultAsync(x => x.Email == loginDTO.Email);
         if (user == null) return Unauthorized("Invalid email");
 
-        var hmac = new HMACSHA512(user.PasswordSalt);
+        // 用資料庫儲存的 PasswordSalt 重建 HMAC 實例，
+        // 才能對使用者輸入的密碼做出「相同的雜湊結果」來比對
+        using var hmac = new HMACSHA512(user.PasswordSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDTO.Password));
+
+        // 逐 byte 比對雜湊結果（不能用 == 比較陣列，那只比較參考位址）
         for (int i = 0; i < computedHash.Length; i++)
         {
             if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
         }
 
-        return Ok(user);
+        return new UserDTO
+        {
+            Id = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            ImageUrl = user.ImageUrl,
+            Token = tokenService.CreateToken(user)
+        };
     }
 
+    // 私有輔助方法：檢查 Email 是否已被使用（大小寫不敏感）
     private async Task<bool> UserExists(string email)
     {
         return await context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
