@@ -68,3 +68,8 @@ dotnet nuget --help
 2. **第 2 步（CRUD）**: 01-crud-core/04-aspnet-overview.md → 01-crud-core/06-routing-guide.md → 01-crud-core/05-migrations-guide.md → API/Examples/01-BasicWebAPI.md
 3. **第 3 步（再進階）**: 02-advanced/06-dependency-injection.md → 02-advanced/07-service-layer-architecture.md
 4. **第 4 步（後排）**: 02-advanced/09-testing.md → 02-advanced/10-background-jobs.md → 02-advanced/11-notifications.md
+
+
+- [.NET 官方網站](https://dotnet.microsoft.com/)
+- [.NET 版本支援政策](https://dotnet.microsoft.com/platform/support/policy)
+- [從 .NET Framework 遷移指南](https://docs.microsoft.com/dotnet/core/porting/)

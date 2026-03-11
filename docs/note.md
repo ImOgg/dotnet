@@ -87,11 +87,56 @@ EF Core 比對「Entity 類別」和「上一個 migration 的快照」之間的
 ```bash
 dotnet ef                                              # 查看所有可用指令
 dotnet ef migrations -h                                # 查看 migrations 子指令說明
-dotnet ef migrations add InitialCreate -o Data/Migrations  # 新增 Migration
-dotnet ef database update #執行Migration
-dotnet ef migrations add UserEntityUpdated #新增 更新migration的檔案
 dotnet ef database drop
+dotnet ef database update 0 
 ```
+### 1. 創建 Migration
+
+```bash
+dotnet ef migrations add <MigrationName>
+```
+
+**範例：**
+```bash
+dotnet ef migrations add InitialCreate -o Data/Migrations  # 新增 Migration
+dotnet ef migrations add UserEntityUpdated #新增 更新migration的檔案
+dotnet ef migrations add InitialCreate
+dotnet ef migrations add AddUserEmail
+dotnet ef migrations add UpdateProductPrice
+```
+
+### 2. 套用 Migration 到資料庫
+
+```bash
+dotnet ef database update
+```
+### 3. 查看所有 Migrations
+
+```bash
+dotnet ef migrations list
+```
+
+**輸出範例：**
+```
+20251020071659_InitialCreate
+20251020090313_InitialCreateAppUser (Pending)
+```
+### 4. 移除最後一個 Migration
+
+```bash
+dotnet ef migrations remove
+```
+
+**注意：** 只能移除尚未套用到資料庫的 Migration！
+### 5. 回滾到特定 Migration
+
+```bash
+dotnet ef database update <MigrationName>
+```
+**命名建議：**
+- 使用描述性名稱（說明這次改了什麼）
+- 使用 PascalCase 命名法
+- 範例：`AddUserAge`、`RemoveProductCategory`、`UpdateOrderStatus`
 
 > ⚠️ **執行 migration 前必須先停止 API**
 >
@@ -103,6 +148,69 @@ dotnet ef database drop
 > 2. 執行 `dotnet ef migrations add <名稱>`
 > 3. 執行 `dotnet ef database update`
 > 4. 再重新 `dotnet run` 或 `dotnet watch run`
+
+---
+
+## 完整工作流程
+
+### 情境 1：第一次建立資料庫
+
+```bash
+# 步驟 1：建立 Entity
+# 在 Entities/AppUser.cs 中定義你的類別
+
+# 步驟 2：建立 DbContext
+# 在 Data/ApplicationDbContext.cs 中設定
+
+# 步驟 3：創建第一個 Migration
+dotnet ef migrations add InitialCreate
+
+# 步驟 4：套用到資料庫
+dotnet ef database update
+```
+
+### 情境 2：修改現有 Entity
+
+```bash
+# 步驟 1：修改 Entity 類別
+# 例如：在 AppUser 中加入新欄位 Age
+
+# 步驟 2：創建 Migration
+dotnet ef migrations add AddUserAge
+
+# 步驟 3：檢查生成的 Migration 檔案
+# 確認變更是否正確
+
+# 步驟 4：套用到資料庫
+dotnet ef database update
+```
+
+### 情境 3：發現 Migration 有錯誤（尚未套用）
+
+```bash
+# 移除錯誤的 Migration
+dotnet ef migrations remove
+
+# 修正 Entity 或設定
+
+# 重新創建 Migration
+dotnet ef migrations add CorrectMigration
+```
+
+### 情境 4：已套用的 Migration 需要修正
+
+```bash
+# 方法 1：回滾後重新套用
+dotnet ef database update PreviousMigration
+dotnet ef migrations remove
+# 修正後重新創建
+dotnet ef migrations add CorrectedMigration
+dotnet ef database update
+
+# 方法 2：創建新的 Migration 來修正
+dotnet ef migrations add FixPreviousIssue
+dotnet ef database update
+```
 
 ---
 
