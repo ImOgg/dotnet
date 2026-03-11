@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using API.Interfaces;
+using API.Extemsions;
 
 
 namespace API.Controllers;
@@ -52,14 +53,7 @@ public class AccountController(AppDbContext context, ITokenService tokenService)
         await context.SaveChangesAsync();
 
         // 回傳 UserDTO：包含 JWT Token，讓前端註冊後立即取得身份驗證憑證
-        return new UserDTO
-        {
-            Id = user.Id,
-            Email = user.Email,
-            DisplayName = user.DisplayName,
-            ImageUrl = user.ImageUrl,
-            Token = tokenService.CreateToken(user)
-        };
+         return user.ToDto(tokenService);
     }
 
     // POST api/account/login — 使用者登入
@@ -84,14 +78,15 @@ public class AccountController(AppDbContext context, ITokenService tokenService)
             if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
         }
 
-        return new UserDTO
-        {
-            Id = user.Id,
-            Email = user.Email,
-            DisplayName = user.DisplayName,
-            ImageUrl = user.ImageUrl,
-            Token = tokenService.CreateToken(user)
-        };
+        // return new UserDTO
+        // {
+        //     Id = user.Id,
+        //     Email = user.Email,
+        //     DisplayName = user.DisplayName,
+        //     ImageUrl = user.ImageUrl,
+        //     Token = tokenService.CreateToken(user)
+        // };
+        return user.ToDto(tokenService);
     }
 
     // 私有輔助方法：檢查 Email 是否已被使用（大小寫不敏感）
