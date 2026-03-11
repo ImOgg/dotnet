@@ -138,6 +138,7 @@ Laravel 的 Model 直接包含資料庫操作邏輯，.NET 拆成兩層：
 ---
 
 ## JWT Token 驗證
+[查看jwt](https://www.jwt.io/)
 
 ### 架構說明
 

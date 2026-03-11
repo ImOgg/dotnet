@@ -7,6 +7,9 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using API.Services;
 using API.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +38,20 @@ builder.Services.AddDbContext<AppDbContext>(
 //   "Key": "your-super-secret-key-at-least-64-characters-long-xxxxxxxxxxxx"
 // }
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+       var tokenKey = builder.Configuration["TokenKey"] ?? throw new ArgumentException("Token key is missing in configuration");
 
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true, // 驗證簽名金鑰
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey)), // 用來驗證簽名的金鑰
+            ValidateIssuer = false, // 不驗證發行者
+            ValidateAudience = false, // 不驗證受眾
+            ValidateLifetime = true, // 驗證過期時間
+        };
+    });
 // ===================== 中介軟體（Middleware）管線 =====================
 
 var app = builder.Build();
@@ -52,9 +68,12 @@ var app = builder.Build();
 // 不是 HTTPS 就不需要重定向
 // app.UseHttpsRedirection();
 
-// 認證與授權中介軟體（課程暫時移除，之後加入 JWT 驗證後需啟用）
-// app.UseAuthentication();
-// app.UseAuthorization();
+// 啟用 CORS（跨來源資源共享），允許前端應用程式從不同的來源訪問 API
+app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000")); 
+
+// 認證與授權中介軟體 這兩個中介軟體的順序很重要，必須先 UseAuthentication()，再 UseAuthorization()，才能正確處理 JWT Token 的驗證與授權
+app.UseAuthentication();
+app.UseAuthorization();
 
 // 將請求路由到對應的 Controller Action
 app.MapControllers();

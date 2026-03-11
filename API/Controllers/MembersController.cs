@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Data;
 using API.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
-{
+{   
+    
+    // [AllowAnonymous] // 這裡加上 [AllowAnonymous] 屬性，表示這個方法不需要授權就可以訪問
     public class MembersController(AppDbContext context) : BaseApiController
     {   
         // AppUser 是我們在 Entities 資料夾下定義的實體類別，代表資料庫中的 Users 表格
@@ -35,6 +38,7 @@ namespace API.Controllers
         
         // 這裡的 {id} 是路由參數，當我們呼叫 api/members/1 時，id 的值就是 1
         // 但是課程範例用的是string id，因為我們的 AppUser 的 Id 是 string 類型（通常是 GUID），所以我們也要用 string 來接收這個參數
+        [Authorize] // 這裡加上 [Authorize] 屬性，表示這個控制器的所有方法都需要授權才能訪問
         [HttpGet("{id}")]
         public async Task<ActionResult<AppUser>> GetMember(string id)
         {
