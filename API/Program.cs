@@ -42,7 +42,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-       var tokenKey = builder.Configuration["TokenKey"] ?? throw new ArgumentException("Token key is missing in configuration");
+        var tokenKey = builder.Configuration["TokenKey"] ?? throw new ArgumentException("Token key is missing in configuration");
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -76,7 +76,7 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>(); // 全局異常處理中介軟體，捕獲未處理的異常並返回統一格式的錯誤響應
 
 // 啟用 CORS（跨來源資源共享），允許前端應用程式從不同的來源訪問 API
-app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000")); 
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000"));
 
 // 認證與授權中介軟體 這兩個中介軟體的順序很重要，必須先 UseAuthentication()，再 UseAuthorization()，才能正確處理 JWT Token 的驗證與授權
 app.UseAuthentication();
@@ -84,5 +84,20 @@ app.UseAuthorization();
 
 // 將請求路由到對應的 Controller Action
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+try
+{
+    var context= services.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync(); // 自動執行資料庫遷移
+    await Seed.SeedData(context); // 執行資料庫種子方法，初始化測試資料
+}
+catch (Exception ex)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred during migration or seeding");
+    throw;
+}
 
 app.Run();

@@ -123,7 +123,7 @@ dotnet ef migrations list
 20251020090313_InitialCreateAppUser (Pending)
 ```
 ### 4. 移除最後一個 Migration
-
+- 這個尤其好用，因為會根據我們的entity來產生migration，有時候我們entity有寫錯，你不能直接去改，會有快照映射的問題，改了會出問題，用這個讓c#重新產生一次，就可以處理錯誤的問題。
 ```bash
 dotnet ef migrations remove
 ```
