@@ -12,7 +12,8 @@
 |----------|------|
 | .NET Install Tool | 安裝與管理 .NET |
 | C# | C# 語言支援 |
-| C# Dev Kit | C# 開發工具包 |
+| C# Dev Kit | C# 開發工具包 我覺得這個不好用 |
+| C# Extensions| 作者是 JosKreativ 可以直接新增template，我覺得比 C# Dev kit好用|
 | NuGet Gallery | NuGet 套件管理 |
 | Material Icon Theme | 檔案圖示美化 |
 | SQLite | SQLite 支援（alexcvzz，可下 SQL query） |
