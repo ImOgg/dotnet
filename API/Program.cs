@@ -24,6 +24,12 @@ builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+// 【Repository 服務】
+// 將 IMemberRepository 介面對應到 MemberRepository 具體實作。
+// Scoped = 每次 HTTP 請求建立一個新實例。
+// Controller 只需宣告 IMemberRepository，DI 框架會自動注入 MemberRepository。
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+
 // 【JWT Token 服務】
 // 將 ITokenService 介面對應到 TokenService 具體實作，並以 Scoped 生命週期注入。
 // Scoped = 每次 HTTP 請求建立一個新實例，請求結束後銷毀。
