@@ -42,4 +42,5 @@ public class Member
     // [ForeignKey(nameof(Id))] 告訴 EF Core：用 Id 欄位作為此關聯的外鍵
     [ForeignKey(nameof(Id))]
     public AppUser User { get; set; } = null!;
+    public string? DisplayName { get; set; }
 }

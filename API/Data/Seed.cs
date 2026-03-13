@@ -45,6 +45,7 @@ public class Seed
                 {
                     // Shared PK：Member.Id 設為與 AppUser.Id 相同
                     Id = member.Id,
+                    DisplayName = member.DisplayName,
                     Description = member.Description,
                     DateofBirth = member.DateofBirth,
                     ImageUrl = member.ImageUrl,
