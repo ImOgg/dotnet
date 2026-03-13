@@ -6,6 +6,23 @@
 - 前往 [官方網站](https://dotnet.microsoft.com/download) 下載
 - 自行選擇適合的 .NET 版本
 
+## 快速開始
+
+### 1. 安裝依賴
+```bash
+dotnet restore
+```
+
+### 2. 設定資料庫連線
+編輯 `appsettings.json`：
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "server=localhost;database=c_test;user=root;password=yourpassword"
+  }
+}
+```
+
 ### 2. VSCode 套件
 
 | 套件名稱 | 說明 |
@@ -435,3 +452,6 @@ for (int i = 0; i < computedHash.Length; i++)
   - 例如：`WeatherForecastController` → `/WeatherForecast`
 - DTO 分「輸入用」和「輸出用」是 API 設計的好習慣，防止敏感欄位洩漏（Security by Design）
 - `using var hmac = new HMACSHA512()` 中的 `using` 確保加密物件用完後立即釋放資源
+
+
+[json to ts](https://transform.tools/json-to-typescript)
