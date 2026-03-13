@@ -3,6 +3,7 @@ using System;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260312064412_MemberEntityAdded")]
+    partial class MemberEntityAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -48,7 +51,7 @@ namespace API.Data.Migrations
 
             modelBuilder.Entity("API.Entities.Member", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("id")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("City")
@@ -79,7 +82,7 @@ namespace API.Data.Migrations
                     b.Property<DateTime>("LastActive")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.ToTable("Members");
                 });
@@ -90,7 +93,7 @@ namespace API.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("MemberId")
+                    b.Property<string>("Memberid")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -103,7 +106,7 @@ namespace API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MemberId");
+                    b.HasIndex("Memberid");
 
                     b.ToTable("Photos");
                 });
@@ -112,7 +115,7 @@ namespace API.Data.Migrations
                 {
                     b.HasOne("API.Entities.AppUser", "User")
                         .WithOne("Member")
-                        .HasForeignKey("API.Entities.Member", "Id")
+                        .HasForeignKey("API.Entities.Member", "id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -122,8 +125,8 @@ namespace API.Data.Migrations
             modelBuilder.Entity("API.Entities.Photo", b =>
                 {
                     b.HasOne("API.Entities.Member", "Member")
-                        .WithMany("Photos")
-                        .HasForeignKey("MemberId")
+                        .WithMany()
+                        .HasForeignKey("Memberid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -134,11 +137,6 @@ namespace API.Data.Migrations
                 {
                     b.Navigation("Member")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("API.Entities.Member", b =>
-                {
-                    b.Navigation("Photos");
                 });
 #pragma warning restore 612, 618
         }

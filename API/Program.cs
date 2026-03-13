@@ -10,6 +10,7 @@ using API.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,12 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+// 【Repository 服務】
+// 將 IMemberRepository 介面對應到 MemberRepository 具體實作。
+// Scoped = 每次 HTTP 請求建立一個新實例。
+// Controller 只需宣告 IMemberRepository，DI 框架會自動注入 MemberRepository。
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 
 // 【JWT Token 服務】
 // 將 ITokenService 介面對應到 TokenService 具體實作，並以 Scoped 生命週期注入。
@@ -41,7 +48,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-       var tokenKey = builder.Configuration["TokenKey"] ?? throw new ArgumentException("Token key is missing in configuration");
+        var tokenKey = builder.Configuration["TokenKey"] ?? throw new ArgumentException("Token key is missing in configuration");
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -72,9 +79,10 @@ var app = builder.Build();
 // 但在Properties/launchSettings.json中將環境變數設定為 Production，所以這段程式碼會被註解掉，避免在生產環境中暴露詳細錯誤資訊
 // app.UseDeveloperExceptionPage();
 
+app.UseMiddleware<ExceptionMiddleware>(); // 全局異常處理中介軟體，捕獲未處理的異常並返回統一格式的錯誤響應
 
 // 啟用 CORS（跨來源資源共享），允許前端應用程式從不同的來源訪問 API
-app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000")); 
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000"));
 
 // 認證與授權中介軟體 這兩個中介軟體的順序很重要，必須先 UseAuthentication()，再 UseAuthorization()，才能正確處理 JWT Token 的驗證與授權
 app.UseAuthentication();
@@ -82,5 +90,20 @@ app.UseAuthorization();
 
 // 將請求路由到對應的 Controller Action
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+try
+{
+    var context= services.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync(); // 自動執行資料庫遷移
+    await Seed.SeedData(context); // 執行資料庫種子方法，初始化測試資料
+}
+catch (Exception ex)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred during migration or seeding");
+    throw;
+}
 
 app.Run();

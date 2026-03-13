@@ -6,13 +6,31 @@
 - 前往 [官方網站](https://dotnet.microsoft.com/download) 下載
 - 自行選擇適合的 .NET 版本
 
+## 快速開始
+
+### 1. 安裝依賴
+```bash
+dotnet restore
+```
+
+### 2. 設定資料庫連線
+編輯 `appsettings.json`：
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "server=localhost;database=c_test;user=root;password=yourpassword"
+  }
+}
+```
+
 ### 2. VSCode 套件
 
 | 套件名稱 | 說明 |
 |----------|------|
 | .NET Install Tool | 安裝與管理 .NET |
 | C# | C# 語言支援 |
-| C# Dev Kit | C# 開發工具包 |
+| C# Dev Kit | C# 開發工具包 我覺得這個不好用 |
+| C# Extensions| 作者是 JosKreativ 可以直接新增template，我覺得比 C# Dev kit好用|
 | NuGet Gallery | NuGet 套件管理 |
 | Material Icon Theme | 檔案圖示美化 |
 | SQLite | SQLite 支援（alexcvzz，可下 SQL query） |
@@ -122,7 +140,7 @@ dotnet ef migrations list
 20251020090313_InitialCreateAppUser (Pending)
 ```
 ### 4. 移除最後一個 Migration
-
+- 這個尤其好用，因為會根據我們的entity來產生migration，有時候我們entity有寫錯，你不能直接去改，會有快照映射的問題，改了會出問題，用這個讓c#重新產生一次，就可以處理錯誤的問題。
 ```bash
 dotnet ef migrations remove
 ```
@@ -434,3 +452,6 @@ for (int i = 0; i < computedHash.Length; i++)
   - 例如：`WeatherForecastController` → `/WeatherForecast`
 - DTO 分「輸入用」和「輸出用」是 API 設計的好習慣，防止敏感欄位洩漏（Security by Design）
 - `using var hmac = new HMACSHA512()` 中的 `using` 確保加密物件用完後立即釋放資源
+
+
+[json to ts](https://transform.tools/json-to-typescript)
