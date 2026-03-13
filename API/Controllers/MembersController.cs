@@ -3,12 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using API.Data;
 using API.Entities;
 using Microsoft.AspNetCore.Authorization;
+using API.Interfaces;
 
 namespace API.Controllers
 {   
-    
+    [Authorize] // 這裡加上 [Authorize] 屬性，表示這個控制器的所有方法都需要授權才能訪問
     // [AllowAnonymous] // 這裡加上 [AllowAnonymous] 屬性，表示這個方法不需要授權就可以訪問
-    public class MembersController(AppDbContext context) : BaseApiController
+    // AppDbContext context 改 成 IMemberRepository memberRepository，這樣就不直接依賴資料庫上下文，而是依賴抽象的 Repository 介面
+    public class MembersController(IMemberRepository memberRepository) : BaseApiController
     {   
         // AppUser 是我們在 Entities 資料夾下定義的實體類別，代表資料庫中的 Users 表格
         
@@ -23,12 +25,22 @@ namespace API.Controllers
         //
         // 回傳型別從 ActionResult 變成 Task<ActionResult>
         // Task 代表「這個方法是非同步的，未來會回傳結果」，跟前端 Promise 一樣的概念
+        // IReadOnlyList<Member> 代表回傳一個會員的唯讀列表，這樣外部就不能修改這個集合了
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<AppUser>>> GetMember()
+        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
         {
-            var members = await context.Users.ToListAsync();
+            var members = await memberRepository.GetMembersAsync();
             return Ok(members);
         }
+        
+        // 第二版
+        // public async Task<ActionResult<IReadOnlyList<AppUser>>> GetMember()
+        // {
+        //     var members = await context.Users.ToListAsync();
+        //     return Ok(members);
+        // }
+
+        // 第一版
         // 這是原版本沒有使用 async/await 的寫法，會造成執行緒被卡住，降低伺服器效能
         // public ActionResult<IReadOnlyList<AppUser>> GetMembers()
         // {
@@ -38,20 +50,37 @@ namespace API.Controllers
         
         // 這裡的 {id} 是路由參數，當我們呼叫 api/members/1 時，id 的值就是 1
         // 但是課程範例用的是string id，因為我們的 AppUser 的 Id 是 string 類型（通常是 GUID），所以我們也要用 string 來接收這個參數
-        [Authorize] // 這裡加上 [Authorize] 屬性，表示這個控制器的所有方法都需要授權才能訪問
+        
         [HttpGet("{id}")]
-        public async Task<ActionResult<AppUser>> GetMember(string id)
+        public async Task<ActionResult<Member>> GetMember(string id)
         {
-            var member = await context.Users.FindAsync(id);
+            var member = await memberRepository.GetMemberByIdAsync(id);
             if (member == null) return NotFound();
             return Ok(member);
         }
-        // 這是原版本沒有使用 async/await 的寫法，會造成執行緒被卡住，降低伺服器效能
+
+        // 第二版
+        // public async Task<ActionResult<AppUser>> GetMember(string id)
+        // {
+        //     var member = await context.Users.FindAsync(id);
+        //     if (member == null) return NotFound();
+        //     return Ok(member);
+        // }
+
+        // 這是第一版沒有使用 async/await 的寫法，會造成執行緒被卡住，降低伺服器效能
         // public ActionResult<AppUser> GetMember(string id)
         // {
         // //     var member = context.Users.Find(id);
         // //     if (member == null) return NotFound();
         // //     return Ok(member);
         // }
+
+        // 這裡的路由是 api/members/{id}/photos，表示要查詢指定會員的所有照片
+        [HttpGet("{id}/photos")]
+        public async Task<ActionResult<IReadOnlyList<Photo>>> GetPhotosForMember(string id)
+        {
+            var photos = await memberRepository.GetPhotosForMemberAsync(id);
+            return Ok(photos);
+        }
     }
 }

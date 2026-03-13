@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace API.Entities;
 
@@ -18,6 +19,7 @@ public class Photo
     // 外鍵欄位：指向 Member.Id
     public string MemberId { get; set; } = null!;
 
+    [JsonIgnore] // 序列化時忽略此屬性，避免循環參考問題
     // 導航屬性：反向指向所屬的 Member
     // [ForeignKey("MemberId")] 明確告知 EF Core 用 MemberId 欄位建立關聯
     [ForeignKey("MemberId")]

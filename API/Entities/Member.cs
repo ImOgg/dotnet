@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace API.Entities;
@@ -31,11 +32,12 @@ public class Member
 
     public required string Country { get; set; }
 
-
+    [JsonIgnore] // 序列化時忽略此屬性，避免循環參考問題
     // 一對多導航屬性：一個 Member 可有多張照片
     // [] 等同 new List<Photo>()，C# 12 集合表達式語法
     public List<Photo> Photos { get; set; } = [];
 
+    [JsonIgnore] // 序列化時忽略此屬性，避免循環參考問題
     // 一對一導航屬性：反向指向 AppUser
     // [ForeignKey(nameof(Id))] 告訴 EF Core：用 Id 欄位作為此關聯的外鍵
     [ForeignKey(nameof(Id))]
