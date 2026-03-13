@@ -100,12 +100,3 @@ app.MapControllers();
 - 同一個 Controller 中出現重複的 HTTP Method + 路徑
 
 ---
-
-## 6) 建議練習順序（30 分鐘）
-
-1. 先做 `GET /api/users`（回固定資料）
-2. 加上 `GET /api/users/{id}`（找不到回 404）
-3. 加 `POST /api/users`（回 201）
-4. 最後補 `PUT/DELETE`
-
-做完再接資料庫 CRUD，不要一開始就把所有層一起做複雜。
