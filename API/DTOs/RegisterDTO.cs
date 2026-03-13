@@ -6,6 +6,7 @@ namespace API.DTOs;
 // 只包含必要欄位，避免直接暴露 Entity（AppUser）
 public class RegisterDTO
 {
+    // 必填：顯示名稱（前端展示用）
     [Required]
     public string DisplayName { get; set; } = string.Empty;
 
@@ -14,10 +15,8 @@ public class RegisterDTO
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    // 必填：密碼
+    // 必填：密碼、最少 6 個字元
     [Required]
-    // 必填：最少 6 個字元
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
-
 }

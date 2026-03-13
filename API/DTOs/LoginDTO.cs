@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs;
@@ -10,15 +9,13 @@ namespace API.DTOs;
 // 因為登入只驗證身份，不建立新資料。
 public class LoginDTO
 {
-
     // 必填：使用者 Email（作為帳號）
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    // 必填：密碼
+    // 必填：密碼、最少 6 個字元
     [Required]
-    // 必填：最少 6 個字元
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
 

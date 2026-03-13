@@ -1,6 +1,3 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-
 namespace API.DTOs;
 
 // DTO（Data Transfer Object）：用來回傳給前端的使用者資料
@@ -18,8 +15,10 @@ public class UserDTO
     // 使用者的唯一識別碼（對應 AppUser.Id，UUID 字串格式）
     public string Id { get; set; } = string.Empty;
 
+    // 登入帳號
     public string Email { get; set; } = string.Empty;
 
+    // 顯示名稱（前端展示用）
     public string DisplayName { get; set; } = string.Empty;
 
     // 大頭照 URL，可為 null（使用者尚未上傳圖片）
