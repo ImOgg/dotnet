@@ -196,3 +196,23 @@ DbSet<Entity>（AppUser / Member / Photo）
 **Services**（TokenService）是跨層共用的，任何層都可以透過 DI 注入使用。
 **Errors + Middleware** 合作，讓例外被全局攔截並回傳統一格式的 JSON。
 **Migrations** 是 EF Core 追蹤 Entity 結構變化的記錄，`dotnet ef database update` 才會真正建立/更新資料庫表格。
+
+
+## Laravel vs .NET 對照
+
+| Laravel | .NET | 說明 |
+|---------|------|------|
+| Model（`User.php`） | Entity（`AppUser.cs`） | 對應資料表的類別 |
+| `$table = 'users'` | `DbSet<AppUser> Users` | 指定操作哪張資料表 |
+| Eloquent ORM | Entity Framework Core | ORM 框架 |
+| `User::all()` | `context.Users.ToList()` | 取全部資料 |
+| `User::find($id)` | `context.Users.Find(id)` | 依 id 取單筆 |
+
+### .NET 的差異
+
+Laravel 的 Model 直接包含資料庫操作邏輯，.NET 拆成兩層：
+
+- **Entity**（`Entities/AppUser.cs`）→ 單純定義資料結構，對應資料表欄位
+- **DbContext**（`Data/AppDbContext.cs`）→ 負責資料庫操作，類似 Laravel 的 `DB` facade
+
+---

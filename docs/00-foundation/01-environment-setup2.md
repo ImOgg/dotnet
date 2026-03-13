@@ -37,6 +37,7 @@ dotnet restore
 | Material Icon Theme | 檔案圖示美化 |
 | SQLite | SQLite 支援（alexcvzz，可下 SQL query） |
 | SQLite Viewer | SQLite 資料庫檢視器（唯讀，點兩下 .db 檔開啟） |
+|json to ts|[好用工具](https://transform.tools/json-to-typescript)|
 
 ---
 ### 3. 資料庫
