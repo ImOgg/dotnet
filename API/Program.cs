@@ -17,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 // ===================== 服務註冊（DI 容器）=====================
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // 註冊 EF Core DbContext，使用 SQLite 資料庫
 // 連線字串從 appsettings.json 的 ConnectionStrings:DefaultConnection 讀取
@@ -63,14 +65,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// Swagger UI（開發環境下啟用，課程暫時移除）
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI();
-// }
+// Swagger UI（開發環境下啟用）
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // 不是 HTTPS 就不需要重定向
 // app.UseHttpsRedirection();
