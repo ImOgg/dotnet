@@ -29,68 +29,53 @@
 
 ## 1. 專案結構
 
-### 推薦的資料夾結構
+### 本專案的資料夾結構
 
 ```
 API/
 ├── Controllers/              # API 端點 (Presentation Layer)
-│   ├── UsersController.cs
-│   ├── ProductsController.cs
-│   └── OrdersController.cs
+│   ├── AccountController.cs
+│   ├── BaseApiController.cs
+│   ├── BuggyController.cs
+│   └── MembersController.cs
 │
-├── Services/                 # 業務邏輯層 (Business Logic Layer)
-│   ├── Interfaces/
-│   │   ├── IUserService.cs
-│   │   ├── IProductService.cs
-│   │   └── IOrderService.cs
-│   └── Implementations/
-│       ├── UserService.cs
-│       ├── ProductService.cs
-│       └── OrderService.cs
+├── Services/                 # 業務邏輯服務
+│   └── TokenService.cs       # JWT 產生服務
 │
-├── Repositories/             # 資料存取層 (Data Access Layer)
-│   ├── Interfaces/
-│   │   ├── IUserRepository.cs
-│   │   ├── IProductRepository.cs
-│   │   └── IOrderRepository.cs
-│   └── Implementations/
-│       ├── UserRepository.cs
-│       ├── ProductRepository.cs
-│       └── OrderRepository.cs
+├── Interfaces/               # 抽象介面定義（統一放這層）
+│   ├── IMemberRepository.cs
+│   └── ITokenService.cs
 │
 ├── Data/                     # 資料庫相關
-│   ├── ApplicationDbContext.cs
-│   └── Configurations/       # Entity 設定
-│       ├── UserConfiguration.cs
-│       └── ProductConfiguration.cs
+│   ├── AppDbContext.cs        # DbContext（資料庫連線）
+│   ├── MemberRepository.cs   # Repository 實作
+│   ├── Seed.cs               # 初始資料
+│   └── Migrations/           # EF Core 自動產生
 │
 ├── Entities/                 # 資料模型 (Domain Models)
 │   ├── AppUser.cs
-│   ├── Product.cs
-│   └── Order.cs
+│   ├── Member.cs
+│   └── Photo.cs
 │
 ├── DTOs/                     # 資料傳輸物件
-│   ├── UserDtos.cs
-│   ├── ProductDtos.cs
-│   └── OrderDtos.cs
+│   ├── LoginDTO.cs
+│   ├── RegisterDTO.cs
+│   ├── UserDTO.cs
+│   ├── MemberUpdateDTO.cs
+│   └── SeedUserDTO.cs
 │
-├── Helpers/                  # 工具類別
-│   ├── MappingProfiles.cs    # AutoMapper 設定
-│   ├── ValidationHelper.cs
-│   └── StringHelper.cs
+├── Errors/                   # 自訂錯誤格式
+│   └── ApiException.cs
 │
-├── Extensions/               # 擴展方法
-│   ├── ServiceCollectionExtensions.cs
-│   └── StringExtensions.cs
+├── Extemsions/               # 擴充方法（Extension Methods）
+│   ├── AppUserExtensions.cs  # AppUser.ToDto()
+│   └── ClaimsPrincipalExtensions.cs
 │
-├── Settings/                 # 設定類別
-│   ├── EmailSettings.cs
-│   └── JwtSettings.cs
-│
-└── Middleware/               # 中介軟體
-    ├── ErrorHandlingMiddleware.cs
-    └── LoggingMiddleware.cs
+└── middleware/               # 中介軟體
+    └── ExceptionMiddleware.cs
 ```
+
+> **與標準架構的差異：** Interfaces 統一放在 `Interfaces/`（而非分散在各層子資料夾），Repository 實作放在 `Data/`（與 DbContext 同層）。服務層目前較簡單，只有 `TokenService`，沒有獨立的 Implementations 子資料夾。
 
 ---
 

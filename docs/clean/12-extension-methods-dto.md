@@ -4,13 +4,23 @@
 
 擴充方法讓你可以「為既有的類別新增方法」，而不需要修改原始類別或繼承它。
 
+### 為什麼需要擴充方法？
+
+假設你用的是 .NET 內建的 `string` 或第三方套件的類別，你**沒辦法直接修改它的原始碼**，也不一定想繼承它。擴充方法讓你在「外部」幫它加方法，呼叫起來卻像是它本來就有的方法。
+
+類比：就像 Laravel 的 Macro（`Collection::macro()`）或 Trait，把功能「注入」進去，不動原始類別。
+
 ### 語法規則
 
+擴充方法有三個固定規則：
+
 ```csharp
-// 必須是 public static class
+// ① 必須放在 public static class 裡
 public static class AppUserExtensions
 {
-    // 第一個參數加上 this 關鍵字，代表「被擴充的型別」
+    // ② 方法本身也必須是 static
+    // ③ 第一個參數加 this，代表「要擴充的型別」，呼叫時不用傳這個參數
+    //           ↓ 這個 this 讓 AppUser 物件可以直接 .ToDto()
     public static UserDTO ToDto(this AppUser user, ITokenService tokenService)
     {
         return new UserDTO { ... };
@@ -18,10 +28,10 @@ public static class AppUserExtensions
 }
 ```
 
-呼叫時就像呼叫 `AppUser` 本身的方法一樣：
+呼叫時就像呼叫 `AppUser` 本身的方法一樣，`user` 會自動帶入：
 
 ```csharp
-// 不用擴充方法（原本的寫法）
+// 不用擴充方法（原本的寫法）—— 每個 action 都要重複貼這段
 return new UserDTO
 {
     Id = user.Id,
@@ -31,7 +41,7 @@ return new UserDTO
     Token = tokenService.CreateToken(user)
 };
 
-// 使用擴充方法（重構後）
+// 使用擴充方法（重構後）—— 一行搞定，邏輯集中在一處
 return user.ToDto(tokenService);
 ```
 
