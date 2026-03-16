@@ -56,18 +56,4 @@ Authorization: Basic Og==
 
 ---
 
-## 相關的 Server 端 Bug
 
-同一次 debug 發現：`GetMemberByIdAsync` 用 `FindAsync` 不支援 `Include`，導致 `member.User` 為 null，存取時拋出 NullReferenceException（500）。
-
-**修法**：改用 `SingleOrDefaultAsync` + `Include(x => x.User)`。
-
-```csharp
-// Before（User 不會被載入）
-return await context.Members.FindAsync(id);
-
-// After
-return await context.Members
-    .Include(x => x.User)
-    .SingleOrDefaultAsync(x => x.Id == id);
-```
