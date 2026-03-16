@@ -21,9 +21,12 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     // FindAsync 會先查 EF Core 的變更追蹤快取（已載入到記憶體的實體），
     // 找到就直接回傳，不發出 SQL；找不到才查資料庫。
     // 適合用 primary key 查詢的情境，比 FirstOrDefaultAsync 效能更好。
+    // FindAsync 不支援 Include，member.User 是 null，所以改用 SingleOrDefaultAsync 搭配 Include。
     public async Task<Member?> GetMemberByIdAsync(string id)
-    {
-        return await context.Members.FindAsync(id);
+    {   
+        return await context.Members
+            .Include(x => x.User)
+            .SingleOrDefaultAsync(x => x.Id == id);
     }
 
     // 為什麼用 ToListAsync 而不是 AsEnumerable？
