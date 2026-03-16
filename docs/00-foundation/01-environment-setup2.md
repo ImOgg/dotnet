@@ -1,5 +1,3 @@
-
-
 # .NET Web API 學習筆記
 
 ## 環境安裝
@@ -22,7 +20,8 @@ dotnet restore
   "ConnectionStrings": {
     "DefaultConnection": "server=localhost;database=c_test;user=root;password=yourpassword"
   }
-}
+},
+
 ```
 
 ### 2. VSCode 套件
@@ -48,11 +47,13 @@ dotnet restore
 ### 建立專案
 
 ```bash
+dotnet new webapi -n API
 dotnet new sln                        # 建立 Solution
 dotnet new webapi -controllers        # 建立 Web API 專案（含 Controllers）
 dotnet new webapi -h                  # 查看 webapi 說明
 dotnet new list                       # 列出所有可用範本
 dotnet run                            # 執行專案
+dotnet watch 
 ```
 
 ### HTTPS 開發憑證
@@ -70,6 +71,7 @@ dotnet dev-certs https --trust        # 信任本機開發憑證
 - `Microsoft.EntityFrameworkCore`
 - `Microsoft.EntityFrameworkCore.Design`
 - `Microsoft.EntityFrameworkCore.Sqlite`
+- `Microsoft.EntityFrameworkCore.MySql`
 
 > 安裝完成後，可到 `API.csproj` 確認是否成功安裝。
 
@@ -91,3 +93,7 @@ dotnet tool update --global dotnet-ef
 - [.NET 官方網站](https://dotnet.microsoft.com/)
 - [.NET 版本支援政策](https://dotnet.microsoft.com/platform/support/policy)
 - [從 .NET Framework 遷移指南](https://docs.microsoft.com/dotnet/core/porting/)
+
+- [ASP.NET Core 官方文件](https://docs.microsoft.com/aspnet/core)
+- [Entity Framework Core 文件](https://docs.microsoft.com/ef/core)
+- [C# 語言參考](https://docs.microsoft.com/dotnet/csharp)
