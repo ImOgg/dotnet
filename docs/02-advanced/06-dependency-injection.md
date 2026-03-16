@@ -1,21 +1,21 @@
-# 依賴注入 (Dependency Injection) 完整指南
+# 依賴注入 (Dependency Injection)
 
-## 什麼是依賴注入？
+> 一句話摘要：ASP.NET Core 內建 DI 容器，透過建構子注入實現控制反轉，降低耦合度並提高可測試性。
 
-**依賴注入 (DI)** 是一種設計模式,用於實現**控制反轉 (IoC)**。
+## 核心概念
 
-### 簡單比喻
+### 什麼是依賴注入？
 
 ```
-❌ 不好的做法 (沒有 DI):
+❌ 沒有 DI（自己建立依賴）:
 class Car {
-    private Engine engine = new Engine(); // 自己建立依賴
+    private Engine engine = new Engine();
 }
 
-✅ 好的做法 (使用 DI):
+✅ 使用 DI（從外部注入依賴）:
 class Car {
     private Engine engine;
-    public Car(Engine engine) {  // 從外部注入依賴
+    public Car(Engine engine) {
         this.engine = engine;
     }
 }
@@ -23,62 +23,89 @@ class Car {
 
 ### 為什麼需要 DI？
 
-1. **降低耦合度** - 類別不需要知道如何建立依賴物件
-2. **提高可測試性** - 容易替換成 Mock 物件進行測試
-3. **提高可維護性** - 修改實作不影響使用者
-4. **提高可重用性** - 相同介面可以有不同實作
+- **降低耦合度** - 類別不需要知道如何建立依賴物件
+- **提高可測試性** - 容易替換成 Mock 物件
+- **提高可維護性** - 修改實作不影響使用者
+- **提高可重用性** - 相同介面可以有不同實作
 
 ---
 
-## ASP.NET Core 內建的 DI 容器
+## 服務生命週期
 
-ASP.NET Core 有內建的 DI 容器,不需要額外安裝套件。
-
-### 服務生命週期
-
-| 生命週期 | 說明 | 何時使用 |
+| 生命週期 | 說明 | 適用場景 |
 |---------|------|---------|
-| **Transient** | 每次請求都建立新實例 | 輕量、無狀態的服務 |
-| **Scoped** | 每個 HTTP 請求建立一個實例 | DbContext、Repository |
-| **Singleton** | 應用程式啟動時建立一次,全域共用 | 設定、快取、工具類別 |
-
-### 生命週期圖解
+| **Transient** | 每次注入都建立新實例 | 輕量、無狀態的工具類別 |
+| **Scoped** | 每個 HTTP 請求建立一個實例 | DbContext、Repository、Service |
+| **Singleton** | 應用程式啟動時建立一次 | 設定、快取、無狀態工具類別 |
 
 ```
-Transient (每次都是新的):
-Request 1: Service-A1, Service-A2, Service-A3
-Request 2: Service-B1, Service-B2, Service-B3
+Transient: Request 1 → A1, A2, A3 (每次都不同)
+Scoped:    Request 1 → A (共用), Request 2 → B (共用)
+Singleton: 所有請求 → X (永遠同一個)
+```
 
-Scoped (同一個請求內共用):
-Request 1: Service-A (共用)
-Request 2: Service-B (共用)
+### Transient 範例
 
-Singleton (全域共用):
-Request 1: Service-X (共用)
-Request 2: Service-X (同一個實例)
-Request 3: Service-X (同一個實例)
+```csharp
+public interface IGuidService { Guid GetGuid(); }
+
+public class GuidService : IGuidService
+{
+    private readonly Guid _guid = Guid.NewGuid();
+    public Guid GetGuid() => _guid;
+}
+
+// 註冊
+builder.Services.AddTransient<IGuidService, GuidService>();
+
+// 測試：兩個注入的實例 GUID 不同
+[HttpGet("transient-test")]
+public IActionResult TestTransient(
+    [FromServices] IGuidService s1,
+    [FromServices] IGuidService s2)
+{
+    return Ok(new { guid1 = s1.GetGuid(), guid2 = s2.GetGuid(), areEqual = false });
+}
+```
+
+### Singleton 範例
+
+```csharp
+public interface ICounterService { int Increment(); int GetCount(); }
+
+public class CounterService : ICounterService
+{
+    private int _count = 0;
+    public int Increment() => Interlocked.Increment(ref _count);
+    public int GetCount() => _count;
+}
+
+// 註冊
+builder.Services.AddSingleton<ICounterService, CounterService>();
+
+// 每次呼叫都會累加，所有請求共用同一個計數器
+[HttpGet("counter")]
+public IActionResult GetCounter([FromServices] ICounterService counter)
+{
+    counter.Increment();
+    return Ok(new { count = counter.GetCount() });
+}
 ```
 
 ---
 
-## 1. 基本使用
+## 基本使用
 
 ### 定義介面與實作
 
 ```csharp
 // Services/IGreetingService.cs
-namespace API.Services;
-
 public interface IGreetingService
 {
     string GetGreeting(string name);
 }
-```
 
-```csharp
 // Services/GreetingService.cs
-namespace API.Services;
-
 public class GreetingService : IGreetingService
 {
     private readonly ILogger<GreetingService> _logger;
@@ -96,34 +123,21 @@ public class GreetingService : IGreetingService
 }
 ```
 
-### 註冊服務
+### 註冊與使用
 
 ```csharp
 // Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-// 註冊服務 - Transient
 builder.Services.AddTransient<IGreetingService, GreetingService>();
-
-var app = builder.Build();
 ```
-
-### 在 Controller 中使用
 
 ```csharp
 // Controllers/GreetingController.cs
-using Microsoft.AspNetCore.Mvc;
-using API.Services;
-
-namespace API.Controllers;
-
 [ApiController]
 [Route("api/[controller]")]
 public class GreetingController : ControllerBase
 {
     private readonly IGreetingService _greetingService;
 
-    // 透過建構子注入
     public GreetingController(IGreetingService greetingService)
     {
         _greetingService = greetingService;
@@ -140,150 +154,55 @@ public class GreetingController : ControllerBase
 
 ---
 
-## 2. 三種生命週期詳解
+## Repository + Service + Controller 完整範例
 
-### Transient - 暫時性
-
-每次請求服務時都建立新實例。
+### 1. Entity
 
 ```csharp
-// Program.cs
-builder.Services.AddTransient<ITransientService, TransientService>();
-```
+// Entities/AppUser.cs
+namespace API.Entities;
 
-**適用場景:**
-- 輕量級、無狀態的服務
-- 工具類別、Helper 類別
-
-**範例:**
-```csharp
-// Services/GuidService.cs
-public interface IGuidService
+public class AppUser
 {
-    Guid GetGuid();
-}
-
-public class GuidService : IGuidService
-{
-    private readonly Guid _guid;
-
-    public GuidService()
-    {
-        _guid = Guid.NewGuid();
-    }
-
-    public Guid GetGuid() => _guid;
-}
-
-// 註冊
-builder.Services.AddTransient<IGuidService, GuidService>();
-
-// 使用
-[HttpGet("transient-test")]
-public IActionResult TestTransient(
-    [FromServices] IGuidService service1,
-    [FromServices] IGuidService service2)
-{
-    return Ok(new
-    {
-        guid1 = service1.GetGuid(), // 不同的 GUID
-        guid2 = service2.GetGuid(), // 不同的 GUID
-        areEqual = service1.GetGuid() == service2.GetGuid() // False
-    });
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string DisplayName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;  // 軟刪除標記
 }
 ```
 
-### Scoped - 範圍性
-
-每個 HTTP 請求建立一個實例,在同一個請求內共用。
+### 2. DTOs
 
 ```csharp
-// Program.cs
-builder.Services.AddScoped<IScopedService, ScopedService>();
-```
+// DTOs/UserDtos.cs
+namespace API.DTOs;
 
-**適用場景:**
-- **Entity Framework DbContext** (最重要!)
-- Repository 模式
-- 需要在同一個請求中共用狀態的服務
-
-**範例:**
-```csharp
-// 註冊 DbContext (預設是 Scoped)
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, serverVersion));
-
-// Repository 也註冊為 Scoped
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// 使用
-[HttpGet("scoped-test")]
-public IActionResult TestScoped(
-    [FromServices] IGuidService service1,
-    [FromServices] IGuidService service2)
+public class UserDto
 {
-    return Ok(new
-    {
-        guid1 = service1.GetGuid(), // 相同的 GUID
-        guid2 = service2.GetGuid(), // 相同的 GUID
-        areEqual = service1.GetGuid() == service2.GetGuid() // True
-    });
+    public string Id { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+}
+
+public class CreateUserDto
+{
+    public string DisplayName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+}
+
+public class UpdateUserDto
+{
+    public string DisplayName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 ```
 
-### Singleton - 單例
-
-應用程式啟動時建立一次,全域共用同一個實例。
+### 3. Repository Layer
 
 ```csharp
-// Program.cs
-builder.Services.AddSingleton<ISingletonService, SingletonService>();
-```
-
-**適用場景:**
-- 設定物件 (AppSettings)
-- 快取服務
-- 日誌服務
-- 無狀態的工具類別
-
-**範例:**
-```csharp
-// Services/CounterService.cs
-public interface ICounterService
-{
-    int Increment();
-    int GetCount();
-}
-
-public class CounterService : ICounterService
-{
-    private int _count = 0;
-
-    public int Increment() => Interlocked.Increment(ref _count);
-    public int GetCount() => _count;
-}
-
-// 註冊
-builder.Services.AddSingleton<ICounterService, CounterService>();
-
-// 使用
-[HttpGet("counter")]
-public IActionResult GetCounter([FromServices] ICounterService counter)
-{
-    counter.Increment();
-    return Ok(new { count = counter.GetCount() }); // 每次呼叫都會累加
-}
-```
-
----
-
-## 3. 實際應用範例
-
-### Repository 模式 + DI
-
-```csharp
-// Repositories/IUserRepository.cs
-namespace API.Repositories;
+// Repositories/Interfaces/IUserRepository.cs
+namespace API.Repositories.Interfaces;
 
 public interface IUserRepository
 {
@@ -297,21 +216,20 @@ public interface IUserRepository
 ```
 
 ```csharp
-// Repositories/UserRepository.cs
+// Repositories/Implementations/UserRepository.cs
 using Microsoft.EntityFrameworkCore;
 using API.Data;
 using API.Entities;
+using API.Repositories.Interfaces;
 
-namespace API.Repositories;
+namespace API.Repositories.Implementations;
 
 public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<UserRepository> _logger;
 
-    public UserRepository(
-        ApplicationDbContext context,
-        ILogger<UserRepository> logger)
+    public UserRepository(ApplicationDbContext context, ILogger<UserRepository> logger)
     {
         _context = context;
         _logger = logger;
@@ -319,18 +237,22 @@ public class UserRepository : IUserRepository
 
     public async Task<List<AppUser>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users
+            .Where(u => !u.IsDeleted)
+            .OrderBy(u => u.DisplayName)
+            .ToListAsync();
     }
 
     public async Task<AppUser?> GetByIdAsync(string id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
     }
 
     public async Task<AppUser?> GetByEmailAsync(string email)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
     }
 
     public async Task<AppUser> CreateAsync(AppUser user)
@@ -350,10 +272,10 @@ public class UserRepository : IUserRepository
 
     public async Task DeleteAsync(string id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await GetByIdAsync(id);
         if (user != null)
         {
-            _context.Users.Remove(user);
+            user.IsDeleted = true;  // 軟刪除，不實際移除資料
             await _context.SaveChangesAsync();
             _logger.LogInformation("User deleted: {UserId}", id);
         }
@@ -361,147 +283,109 @@ public class UserRepository : IUserRepository
 }
 ```
 
-### Service 層
+### 4. Service Layer
 
 ```csharp
-// Services/IUserService.cs
-namespace API.Services;
+// Services/Interfaces/IUserService.cs
+namespace API.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<List<AppUser>> GetAllUsersAsync();
-    Task<AppUser?> GetUserByIdAsync(string id);
-    Task<AppUser> CreateUserAsync(CreateUserDto dto);
+    Task<List<UserDto>> GetAllUsersAsync();
+    Task<UserDto?> GetUserByIdAsync(string id);
+    Task<UserDto> CreateUserAsync(CreateUserDto dto);
     Task UpdateUserAsync(string id, UpdateUserDto dto);
     Task DeleteUserAsync(string id);
 }
 ```
 
 ```csharp
-// Services/UserService.cs
-using API.Repositories;
+// Services/Implementations/UserService.cs
 using API.DTOs;
 using API.Entities;
+using API.Repositories.Interfaces;
+using API.Services.Interfaces;
 
-namespace API.Services;
+namespace API.Services.Implementations;
 
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IEmailService _emailService;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(
-        IUserRepository userRepository,
-        IEmailService emailService,
-        ILogger<UserService> logger)
+    public UserService(IUserRepository userRepository, ILogger<UserService> logger)
     {
         _userRepository = userRepository;
-        _emailService = emailService;
         _logger = logger;
     }
 
-    public async Task<List<AppUser>> GetAllUsersAsync()
+    public async Task<List<UserDto>> GetAllUsersAsync()
     {
-        return await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllAsync();
+        return users.Select(MapToDto).ToList();
     }
 
-    public async Task<AppUser?> GetUserByIdAsync(string id)
+    public async Task<UserDto?> GetUserByIdAsync(string id)
     {
-        return await _userRepository.GetByIdAsync(id);
+        var user = await _userRepository.GetByIdAsync(id);
+        return user == null ? null : MapToDto(user);
     }
 
-    public async Task<AppUser> CreateUserAsync(CreateUserDto dto)
+    public async Task<UserDto> CreateUserAsync(CreateUserDto dto)
     {
-        // 檢查 Email 是否已存在
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
         if (existingUser != null)
-        {
             throw new InvalidOperationException("Email 已被使用");
-        }
 
-        var user = new AppUser
-        {
-            DisplayName = dto.DisplayName,
-            Email = dto.Email
-        };
-
+        var user = new AppUser { DisplayName = dto.DisplayName, Email = dto.Email };
         var createdUser = await _userRepository.CreateAsync(user);
+        _logger.LogInformation("User created: {UserId}", createdUser.Id);
 
-        // 發送歡迎信 (背景工作)
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await _emailService.SendEmailAsync(
-                    user.Email,
-                    "歡迎加入",
-                    $"Hi {user.DisplayName}, 歡迎!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending welcome email");
-            }
-        });
-
-        return createdUser;
+        return MapToDto(createdUser);
     }
 
     public async Task UpdateUserAsync(string id, UpdateUserDto dto)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
-        {
             throw new KeyNotFoundException("找不到使用者");
+
+        if (user.Email != dto.Email)
+        {
+            var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
+            if (existingUser != null)
+                throw new InvalidOperationException("Email 已被使用");
         }
 
         user.DisplayName = dto.DisplayName;
         user.Email = dto.Email;
 
         await _userRepository.UpdateAsync(user);
+        _logger.LogInformation("User updated: {UserId}", id);
     }
 
     public async Task DeleteUserAsync(string id)
     {
         await _userRepository.DeleteAsync(id);
+        _logger.LogInformation("User deleted: {UserId}", id);
     }
+
+    private static UserDto MapToDto(AppUser user) => new()
+    {
+        Id = user.Id,
+        DisplayName = user.DisplayName,
+        Email = user.Email
+    };
 }
 ```
 
-### 註冊所有服務
-
-```csharp
-// Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-// DbContext (Scoped)
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
-
-// Repositories (Scoped - 因為依賴 DbContext)
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// Services (Scoped)
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-// Settings (Singleton)
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings"));
-
-var app = builder.Build();
-```
-
-### Controller 使用
+### 5. Controller
 
 ```csharp
 // Controllers/UsersController.cs
 using Microsoft.AspNetCore.Mvc;
-using API.Services;
 using API.DTOs;
+using API.Services.Interfaces;
 
 namespace API.Controllers;
 
@@ -510,17 +394,12 @@ namespace API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(
-        IUserService userService,
-        ILogger<UsersController> logger)
+    public UsersController(IUserService userService)
     {
         _userService = userService;
-        _logger = logger;
     }
 
-    // GET: api/users
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -528,18 +407,16 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
-    // GET: api/users/5
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(string id)
     {
         var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
-            return NotFound();
+            return NotFound(new { error = "找不到使用者" });
 
         return Ok(user);
     }
 
-    // POST: api/users
     [HttpPost]
     public async Task<IActionResult> CreateUser(CreateUserDto dto)
     {
@@ -554,7 +431,6 @@ public class UsersController : ControllerBase
         }
     }
 
-    // PUT: api/users/5
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(string id, UpdateUserDto dto)
     {
@@ -563,125 +439,104 @@ public class UsersController : ControllerBase
             await _userService.UpdateUserAsync(id, dto);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
         }
     }
 
-    // DELETE: api/users/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
-        await _userService.DeleteAsync(id);
+        await _userService.DeleteUserAsync(id);
         return NoContent();
     }
 }
 ```
 
----
-
-## 4. 進階技巧
-
-### 多個實作的選擇
+### 6. Program.cs
 
 ```csharp
-// Services/IPaymentService.cs
-public interface IPaymentService
+using API.Data;
+using API.Repositories.Interfaces;
+using API.Repositories.Implementations;
+using API.Services.Interfaces;
+using API.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// DbContext（Scoped）
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// Repositories（Scoped，依賴 DbContext）
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Services（Scoped）
+builder.Services.AddScoped<IUserService, UserService>();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
 {
-    Task ProcessPaymentAsync(decimal amount);
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-public class CreditCardPaymentService : IPaymentService
-{
-    public Task ProcessPaymentAsync(decimal amount)
-    {
-        // 信用卡支付邏輯
-        return Task.CompletedTask;
-    }
-}
-
-public class PayPalPaymentService : IPaymentService
-{
-    public Task ProcessPaymentAsync(decimal amount)
-    {
-        // PayPal 支付邏輯
-        return Task.CompletedTask;
-    }
-}
-
-// 註冊多個實作
-builder.Services.AddKeyedScoped<IPaymentService, CreditCardPaymentService>("CreditCard");
-builder.Services.AddKeyedScoped<IPaymentService, PayPalPaymentService>("PayPal");
-
-// 使用
-public class OrderService
-{
-    private readonly IPaymentService _creditCardPayment;
-    private readonly IPaymentService _paypalPayment;
-
-    public OrderService(
-        [FromKeyedServices("CreditCard")] IPaymentService creditCardPayment,
-        [FromKeyedServices("PayPal")] IPaymentService paypalPayment)
-    {
-        _creditCardPayment = creditCardPayment;
-        _paypalPayment = paypalPayment;
-    }
-}
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
 ```
 
-### 工廠模式 + DI
+### 7. 測試 API
 
-```csharp
-// Services/IPaymentServiceFactory.cs
-public interface IPaymentServiceFactory
+```http
+### 取得所有使用者
+GET https://localhost:5001/api/users
+
+### 取得單一使用者
+GET https://localhost:5001/api/users/{id}
+
+### 建立使用者
+POST https://localhost:5001/api/users
+Content-Type: application/json
+
 {
-    IPaymentService GetPaymentService(string paymentMethod);
+  "displayName": "張三",
+  "email": "zhang@example.com"
 }
 
-public class PaymentServiceFactory : IPaymentServiceFactory
+### 更新使用者
+PUT https://localhost:5001/api/users/{id}
+Content-Type: application/json
+
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public PaymentServiceFactory(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
-    public IPaymentService GetPaymentService(string paymentMethod)
-    {
-        return paymentMethod switch
-        {
-            "CreditCard" => _serviceProvider.GetRequiredKeyedService<IPaymentService>("CreditCard"),
-            "PayPal" => _serviceProvider.GetRequiredKeyedService<IPaymentService>("PayPal"),
-            _ => throw new ArgumentException("Unsupported payment method")
-        };
-    }
+  "displayName": "張三豐",
+  "email": "zhang@example.com"
 }
 
-// 註冊
-builder.Services.AddScoped<IPaymentServiceFactory, PaymentServiceFactory>();
-```
-
-### 條件式註冊
-
-```csharp
-// 根據環境註冊不同的服務
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddScoped<IEmailService, FakeEmailService>();
-}
-else
-{
-    builder.Services.AddScoped<IEmailService, EmailService>();
-}
+### 刪除使用者（軟刪除）
+DELETE https://localhost:5001/api/users/{id}
 ```
 
 ---
 
-## 5. 服務註冊的常用擴展方法
+## 進階技巧
 
-### 批量註冊服務
+### 批量註冊（Extension Methods）
+
+隨著服務增多，建議用擴展方法整理 `Program.cs`：
 
 ```csharp
 // Extensions/ServiceCollectionExtensions.cs
@@ -693,7 +548,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration config)
     {
-        // DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseMySql(
                 config.GetConnectionString("DefaultConnection"),
@@ -702,17 +556,13 @@ public static class ServiceCollectionExtensions
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
 
         // Services
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<INotificationService, NotificationService>();
 
         // Settings
-        services.Configure<EmailSettings>(
-            config.GetSection("EmailSettings"));
+        services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
 
         return services;
     }
@@ -724,25 +574,68 @@ public static class ServiceCollectionExtensions
 using API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// 使用擴展方法一次註冊所有服務
 builder.Services.AddApplicationServices(builder.Configuration);
+```
 
-var app = builder.Build();
+### 多個實作（Keyed Services）
+
+```csharp
+// 註冊多個實作
+builder.Services.AddKeyedScoped<IPaymentService, CreditCardPaymentService>("CreditCard");
+builder.Services.AddKeyedScoped<IPaymentService, PayPalPaymentService>("PayPal");
+
+// 使用
+public class OrderService
+{
+    public OrderService(
+        [FromKeyedServices("CreditCard")] IPaymentService creditCardPayment,
+        [FromKeyedServices("PayPal")] IPaymentService paypalPayment) { }
+}
+```
+
+### 工廠模式
+
+```csharp
+public class PaymentServiceFactory : IPaymentServiceFactory
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public PaymentServiceFactory(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public IPaymentService GetPaymentService(string method) => method switch
+    {
+        "CreditCard" => _serviceProvider.GetRequiredKeyedService<IPaymentService>("CreditCard"),
+        "PayPal" => _serviceProvider.GetRequiredKeyedService<IPaymentService>("PayPal"),
+        _ => throw new ArgumentException("Unsupported payment method")
+    };
+}
+```
+
+### 條件式註冊
+
+```csharp
+// 開發環境用假的 Email，正式環境才真的發信
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddScoped<IEmailService, FakeEmailService>();
+else
+    builder.Services.AddScoped<IEmailService, EmailService>();
 ```
 
 ---
 
-## 6. 常見錯誤與解決方法
+## 常見錯誤
 
-### ❌ 錯誤 1: 生命週期不匹配
+### Singleton 依賴 Scoped 服務
 
 ```csharp
-// ❌ 錯誤: Singleton 依賴 Scoped
-builder.Services.AddSingleton<SingletonService>(); // 依賴 DbContext
+// ❌ 錯誤：Singleton 不能直接依賴 Scoped 的 DbContext
+builder.Services.AddSingleton<SingletonService>();
 builder.Services.AddScoped<ApplicationDbContext>();
 
-// ✅ 解決: 改用 IServiceProvider 手動建立 Scope
+// ✅ 解決：手動建立 Scope
 public class SingletonService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -761,86 +654,61 @@ public class SingletonService
 }
 ```
 
-### ❌ 錯誤 2: 忘記註冊服務
+### 忘記註冊服務
 
-```csharp
-// 執行時會拋出異常:
-// Unable to resolve service for type 'IUserService'
-
-// ✅ 解決: 確保已註冊
+```
+// 執行時拋出：Unable to resolve service for type 'IUserService'
+// 解決：確保在 Program.cs 加上：
 builder.Services.AddScoped<IUserService, UserService>();
 ```
 
-### ❌ 錯誤 3: 循環依賴
+### 循環依賴
 
 ```csharp
-// ❌ 錯誤: A → B → A
-public class ServiceA
-{
-    public ServiceA(ServiceB b) { }
-}
+// ❌ A → B → A，會拋出例外
+public class ServiceA { public ServiceA(ServiceB b) { } }
+public class ServiceB { public ServiceB(ServiceA a) { } }
 
-public class ServiceB
-{
-    public ServiceB(ServiceA a) { }  // 循環依賴!
-}
-
-// ✅ 解決: 重新設計,打破循環
-// 方法 1: 抽取共用介面
-// 方法 2: 使用事件/訊息機制
-// 方法 3: 使用 Lazy<T>
+// ✅ 解決方案：
+// 1. 抽取共用介面或第三個服務
+// 2. 使用事件 / 訊息機制解耦
+// 3. 使用 Lazy<T> 延遲注入
 ```
 
 ---
 
 ## 最佳實踐
 
-### ✅ 應該做的
+**應該做的：**
+- 優先注入介面，而非具體類別
+- DbContext / Repository / Service 使用 Scoped
+- 設定物件、快取服務使用 Singleton
+- 使用建構子注入，避免屬性注入
+- 用擴展方法整理 Program.cs
 
-1. **優先使用介面** - 而不是具體類別
-2. **選擇正確的生命週期**
-   - DbContext → Scoped
-   - Repository → Scoped
-   - Service → Scoped
-   - Settings → Singleton
-3. **使用建構子注入** - 避免屬性注入
-4. **避免 Service Locator 模式** - 不要直接注入 `IServiceProvider`
-5. **使用擴展方法組織註冊** - 保持 Program.cs 整潔
-
-### ❌ 不應該做的
-
-1. ❌ 在 Singleton 中注入 Scoped 服務
-2. ❌ 建立循環依賴
-3. ❌ 過度使用 DI (簡單的值物件不需要)
-4. ❌ 在 Controller 中直接使用 Repository
+**不應該做的：**
+- 在 Singleton 中直接注入 Scoped 服務
+- 建立循環依賴
+- 在 Controller 中直接使用 Repository（跳過 Service 層）
+- 濫用 `IServiceProvider`（Service Locator 反模式）
 
 ---
 
-## 總結
-
-這份指南涵蓋了:
-- ✅ DI 的基本概念
-- ✅ 三種服務生命週期 (Transient、Scoped、Singleton)
-- ✅ Repository 模式 + Service 層完整範例
-- ✅ 進階技巧 (工廠模式、多實作選擇)
-- ✅ 常見錯誤與解決方法
-- ✅ 最佳實踐
-
-### 推薦的專案架構
+## 推薦專案架構
 
 ```
 API/
 ├── Controllers/          # API 端點
-├── Services/            # 業務邏輯
+├── Services/             # 業務邏輯
 │   ├── Interfaces/
 │   └── Implementations/
-├── Repositories/        # 資料存取
+├── Repositories/         # 資料存取
 │   ├── Interfaces/
 │   └── Implementations/
-├── Data/               # DbContext
-├── Entities/           # 資料模型
-├── DTOs/               # 資料傳輸物件
-├── Settings/           # 設定類別
-└── Extensions/         # 擴展方法
+├── Data/                 # DbContext
+├── Entities/             # 資料模型
+├── DTOs/                 # 資料傳輸物件
+├── Settings/             # 設定類別
+└── Extensions/           # 擴展方法
     └── ServiceCollectionExtensions.cs
 ```
