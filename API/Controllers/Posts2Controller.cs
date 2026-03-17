@@ -9,7 +9,7 @@ using API.Extemsions;
 namespace API.Controllers
 {
     [Authorize]
-    public class PostsController2(AppDbContext context) : BaseApiController
+    public class Posts2Controller(AppDbContext context) : BaseApiController
     {
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<PostDTO>>> GetPosts()

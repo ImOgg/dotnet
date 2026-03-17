@@ -21,4 +21,6 @@ public class AppUser
     // EF Core 會透過 Member.Id（FK）自動建立關聯，不需要額外宣告 FK 欄位
     public Member Member { get; set; } = null!;
 
+    // AppUser 與 Post 是一對多關係（一個 User 可有多篇 Post）
+    public ICollection<Post> Posts { get; set; } = [];
 }
