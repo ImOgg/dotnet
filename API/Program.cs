@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using API.Middleware;
+using API.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ builder.Services.AddDbContext<AppDbContext>(
 // Controller 只需宣告 IMemberRepository，DI 框架會自動注入 MemberRepository。
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
+// CloudinarySetting
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 // 【JWT Token 服務】
 // 將 ITokenService 介面對應到 TokenService 具體實作，並以 Scoped 生命週期注入。
 // Scoped = 每次 HTTP 請求建立一個新實例，請求結束後銷毀。
@@ -47,6 +50,7 @@ builder.Services.AddScoped<IPostRepository, PostRepository>();
 //   "Key": "your-super-secret-key-at-least-64-characters-long-xxxxxxxxxxxx"
 // }
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

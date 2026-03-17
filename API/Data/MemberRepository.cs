@@ -23,9 +23,22 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     // 適合用 primary key 查詢的情境，比 FirstOrDefaultAsync 效能更好。
     // FindAsync 不支援 Include，member.User 是 null，所以改用 SingleOrDefaultAsync 搭配 Include。
     public async Task<Member?> GetMemberByIdAsync(string id)
-    {   
+    {
+        // Include 是 EF Core 的「Eager Loading（積極載入）」——
+        // EF Core 預設不會自動載入關聯資料（導覽屬性），
+        // 若不加 Include，查出來的 Member 物件中：
+        //   member.User   → null（關聯的 AppUser 不會被載入）
+        //   member.Photos → 空集合（關聯的照片清單不會被載入）
+        //
+        // 加上 Include 後，EF Core 會產生帶有 JOIN 的 SQL，
+        // 一次查詢就把 User 和 Photos 一起撈回來：
+        //   SELECT ... FROM Members
+        //   LEFT JOIN AspNetUsers ON ...   ← Include(x => x.User)
+        //   LEFT JOIN Photos ON ...        ← Include(x => x.Photos)
+        //   WHERE Members.Id = @id
         return await context.Members
-            .Include(x => x.User)
+            .Include(x => x.User)    // 載入關聯的 AppUser（登入帳號資訊）
+            .Include(x => x.Photos)  // 載入關聯的 Photo 集合（會員的所有照片）
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 

@@ -14,3 +14,6 @@
 *.db
 *.db-shm
 *.db-wal
+
+API/appsettings.json
+API/appsettings.Development.json

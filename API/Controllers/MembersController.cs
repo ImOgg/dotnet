@@ -19,7 +19,7 @@ namespace API.Controllers
     // Controller 只依賴抽象介面，不直接依賴 EF Core 的具體實作。
     // 這樣符合依賴反轉原則（DIP），讓 Controller 的職責單純化：
     // 只負責處理 HTTP 請求/回應，資料存取的細節交給 Repository 層。
-    public class MembersController(IMemberRepository memberRepository) : BaseApiController
+    public class MembersController(IMemberRepository memberRepository, IPhotoService photoService) : BaseApiController
     {
         // 【為什麼用 async/await？】
         // GetMembersAsync() 是 I/O 操作（等資料庫回應），執行期間 CPU 什麼都不做。
@@ -93,6 +93,34 @@ namespace API.Controllers
             // 前端通常自己已有最新資料（剛送出去的），不需要伺服器再送一次。
             if (await memberRepository.SaveAllAsync()) return NoContent();
             return BadRequest("Failed to update member");
+        }
+
+        [HttpPost("add-photo")]
+        public async Task<ActionResult<Photo>> AddPhoto([FromForm] PhotoUploadDTO dto)
+        {
+            var member = await memberRepository.GetMemberByIdAsync(User.GetMemberId());
+            if (member == null) return BadRequest("member not found");
+            var result = await photoService.UploadPhotoAsync(dto.File);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+
+            var photo = new Photo
+            {
+                Url = result.SecureUrl.AbsoluteUri,
+                PublicId = result.PublicId,
+                MemberId = User.GetMemberId(),
+            };
+
+            if (member.ImageUrl == null)
+            {
+                member.ImageUrl = photo.Url;
+                member.User.ImageUrl = photo.Url;
+            }
+
+            member.Photos.Add(photo);
+
+            if(await memberRepository.SaveAllAsync()) return photo;
+
+            return BadRequest("Failed to add photo");
         }
     }
 }
