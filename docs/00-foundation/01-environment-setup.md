@@ -239,3 +239,47 @@ docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES; SE
 - 本機對外連線用 `3307`，容器內仍是 `3306`。
 - `.env` 放在專案根目錄（和 `docker-compose.yml` 同層）是正確做法。
 - `dotnet-api` 容器是 runtime image，通常不適合跑 `dotnet ef`；請用 SDK 容器。
+
+### Docker 快速開始（推薦）
+
+本專案可直接使用 Docker 啟動 API + MySQL。
+
+```bash
+# 1) 第一次先建立環境檔（若已存在可略過）
+copy .env.example .env
+
+# 2) 啟動服務
+docker compose up -d --build
+
+# 3) 依 docs/00-foundation/01-environment-setup.md 的「進 SDK 容器短指令」執行 migration
+
+# 4) 檢查資料表
+docker exec dotnet-mysql mysql -uroot -ppassword -e "USE c_test; SHOW TABLES;"
+```
+
+MySQL Workbench 連線資訊：
+- Host: `127.0.0.1`
+- Port: `3307`
+- User: `root`
+- Password: `.env` 的 `MYSQL_ROOT_PASSWORD`
+- Database: `c_test`
+
+更多 Docker + EF 操作，請看 `docs/00-foundation/01-environment-setup.md`。
+
+### Launch Settings 設定
+位置：`Properties/launchSettings.json`
+
+可以刪除多餘的設定檔，只保留需要的一個。建議保留的 HTTP 設定：
+
+```json
+"http": {
+  "commandName": "Project",
+  "dotnetRunMessages": true,
+  "launchBrowser": true,
+  "launchUrl": "swagger",
+  "applicationUrl": "http://localhost:5258",
+  "environmentVariables": {
+    "ASPNETCORE_ENVIRONMENT": "Development"
+  }
+}
+```

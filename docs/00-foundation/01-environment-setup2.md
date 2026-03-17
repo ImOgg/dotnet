@@ -59,12 +59,21 @@ dotnet watch
 ### HTTPS 開發憑證
 
 ```bash
-dotnet dev-certs https --trust        # 信任本機開發憑證
+# 清除現有的開發憑證
+dotnet dev-certs https --clean
+
+# 信任新的開發憑證
+dotnet dev-certs https --trust
+
+# 查看更多憑證相關指令
+dotnet dev-certs https -h
 ```
 
-## Entity Framework Core
+## 套件管理
 
-### 安裝套件
+### 使用 NuGet 安裝套件
+
+透過 NuGet 安裝的套件會自動更新到 `API.csproj` 檔案中。
 
 在 NuGet Gallery 搜尋並安裝（記得取消勾選 prerelease）：
 
@@ -75,6 +84,11 @@ dotnet dev-certs https --trust        # 信任本機開發憑證
 
 > 安裝完成後，可到 `API.csproj` 確認是否成功安裝。
 
+# 安裝 SQL Server 套件
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+# 安裝 PostgreSQL 套件
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
 ### 安裝 Migration 工具
 
 ```bash
@@ -86,14 +100,17 @@ dotnet ef --version
 
 # 日後升級 EF Core 套件時，同步更新工具
 dotnet tool update --global dotnet-ef
+
+
 ```
 
 
 ## 參考文件
+
 - [.NET 官方網站](https://dotnet.microsoft.com/)
 - [.NET 版本支援政策](https://dotnet.microsoft.com/platform/support/policy)
 - [從 .NET Framework 遷移指南](https://docs.microsoft.com/dotnet/core/porting/)
-
-- [ASP.NET Core 官方文件](https://docs.microsoft.com/aspnet/core)
+- [ASP.NET Core 官方文件](https://learn.microsoft.com/zh-tw/aspnet/core/)
 - [Entity Framework Core 文件](https://docs.microsoft.com/ef/core)
 - [C# 語言參考](https://docs.microsoft.com/dotnet/csharp)
+- [.NET CLI 指令參考](https://learn.microsoft.com/zh-tw/dotnet/core/tools/)
