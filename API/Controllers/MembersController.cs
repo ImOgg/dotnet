@@ -148,7 +148,7 @@ namespace API.Controllers
             // 【為什麼要從 member.Photos 找，而不是直接查資料庫？】
             // 因為同一個 photoId 可能屬於不同會員，
             // 從 member.Photos 找能確保只能操作「自己」的照片，防止越權存取。
-            var photo = member.Photos.FirstOrDefault(p => p.Id == photoId);
+            var photo = member.Photos.SingleOrDefault(p => p.Id == photoId);
 
             // 【為什麼先判斷 photo == null，再比較 photo.Url？】
             // 短路求值（Short-circuit evaluation）：|| 左邊為 true 就不執行右邊。
@@ -169,6 +169,46 @@ namespace API.Controllers
 
             return BadRequest("Failed to set main photo");
         }
+        // 【這支 API 在做什麼？】
+        // 刪除會員相簿中的某一張照片。
+        // 前端傳入照片的數字 ID（photoId），伺服器驗證後，
+        // 先從 Cloudinary 刪除實體檔案，再從資料庫移除記錄。
+        //
+        // 【為什麼主圖不能刪？】
+        // 主圖（ImageUrl）是會員的頭貼，若允許刪除，頭貼會變成空白，
+        // 前端 UI 可能會壞掉。要換主圖請先用 set-main-photo 換成其他照片。
+        //
+        // 【為什麼用 DELETE 而不是 POST？】
+        // REST 語意：DELETE 表示「移除這個資源」，
+        // 路由 /api/Members/delete-photo/3 對應「刪除 id=3 的照片」，語意清楚。
+        [HttpDelete("delete-photo/{photoId}")]
+        public async Task<ActionResult> DeletePhoto(int photoId)
+        {
+            var member = await memberRepository.GetMemberByIdAsync(User.GetMemberId());
+            if (member == null) return BadRequest("member not found");
 
+            // 從 member.Photos 找，確保只能操作自己的照片，防止越權存取
+            var photo = member.Photos.SingleOrDefault(p => p.Id == photoId);
+            if (photo == null) return NotFound();
+
+            // 主圖不允許刪除（第一個 photo == null 已在上方攔截，這裡只檢查主圖條件）
+            if (photo.Url == member.ImageUrl)
+            {
+                return BadRequest("Cannot delete main photo");
+            }
+
+            // 若照片有 PublicId，代表它存在 Cloudinary 上，需要先刪除雲端檔案
+            // 若 PublicId 為 null，表示這是本機測試照片，直接跳過雲端刪除
+            if (photo.PublicId != null)
+            {
+                var result = await photoService.DeletePhotoAsync(photo.PublicId);
+                if (result.Error != null) return BadRequest(result.Error.Message);
+            }
+
+            member.Photos.Remove(photo);
+            if (await memberRepository.SaveAllAsync()) return Ok();
+
+            return BadRequest("Problem deleting photo");
+        }
     }
 }
