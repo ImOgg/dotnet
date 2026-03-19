@@ -49,7 +49,11 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     // 這裡回傳所有會員清單，沒有進一步篩選，所以 ToListAsync 是合適的選擇。
     public async Task<IReadOnlyList<Member>> GetMembersAsync()
     {
-        return await context.Members.ToListAsync();
+        var query = context.Members.AsQueryable();
+
+        return await query.ToListAsync();
+        // 原本無篩選條件，直接 ToListAsync 就好；如果有分頁或搜尋條件，應該在資料庫層面先篩選，再載入需要的資料。
+        // return await context.Members.ToListAsync();
     }
 
     // 為什麼用 Where + SelectMany 而不是先找 Member 再用 member.Photos？
