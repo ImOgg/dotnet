@@ -57,7 +57,14 @@ public class AccountController(AppDbContext context, ITokenService tokenService)
             // 所以相同密碼雜湊出的結果也不同（防彩虹表攻擊）
             PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
             // 儲存 Key（鹽），登入時需要用同一把 Key 重現雜湊來驗證密碼
-            PasswordSalt = hmac.Key
+            PasswordSalt = hmac.Key,
+            Member = new Member
+            {
+                DisplayName = registerDTO.DisplayName,
+                Gender = registerDTO.Gender,
+                City = registerDTO.City,
+                Country = registerDTO.Country,
+            }
         };
 
         context.Users.Add(user);
