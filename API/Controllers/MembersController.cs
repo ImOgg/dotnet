@@ -118,9 +118,57 @@ namespace API.Controllers
 
             member.Photos.Add(photo);
 
-            if(await memberRepository.SaveAllAsync()) return photo;
+            if (await memberRepository.SaveAllAsync()) return photo;
 
             return BadRequest("Failed to add photo");
         }
+
+        // 【這支 API 在做什麼？】
+        // 把會員相簿中的某一張照片，設定為個人主圖（大頭貼）。
+        // 前端傳入照片的數字 ID（photoId），伺服器找到那張照片後，
+        // 把它的 URL 更新到 Member.ImageUrl 和 AppUser.ImageUrl。
+        //
+        // 【為什麼用 PUT 而不是 PATCH？】
+        // PUT 語意：「用這筆資料取代原本的資源」。
+        // 這裡是「取代目前的主圖」，符合 PUT 的語意。
+        // PATCH 通常用在「只更新部分欄位、其餘保留」的場景。
+        //
+        // 【為什麼路由是 set-main-photo/{photoId}？】
+        // /api/Members/set-main-photo/3 → photoId = 3
+        // photoId 型別是 int（照片的資料庫主鍵），
+        // 不是 memberId（memberId 是字串 GUID，從 JWT Token 取得）。
+        [HttpPut("set-main-photo/{photoId}")]
+        public async Task<ActionResult> SetMainPhoto(int photoId)
+        {
+            // 從 JWT Token 取出目前登入的會員 ID，再查詢完整的 Member 資料
+            var member = await memberRepository.GetMemberByIdAsync(User.GetMemberId());
+            if (member == null) return BadRequest("member not found");
+
+            // 在這位會員的相簿裡，找出 Id 符合 photoId 的那張照片
+            // 【為什麼要從 member.Photos 找，而不是直接查資料庫？】
+            // 因為同一個 photoId 可能屬於不同會員，
+            // 從 member.Photos 找能確保只能操作「自己」的照片，防止越權存取。
+            var photo = member.Photos.FirstOrDefault(p => p.Id == photoId);
+
+            // 【為什麼先判斷 photo == null，再比較 photo.Url？】
+            // 短路求值（Short-circuit evaluation）：|| 左邊為 true 就不執行右邊。
+            // 若 photo == null 放在右邊，會先執行 photo.Url 而拋出 NullReferenceException。
+            if (photo == null || member.ImageUrl == photo.Url)
+            {
+                return BadRequest("Photo not found or already main photo");
+            }
+
+            // 把那張照片的 URL 設為主圖
+            // 【為什麼要同時更新 member.ImageUrl 和 member.User.ImageUrl？】
+            // Member 表和 AppUser 表各自有一個 ImageUrl 欄位，兩邊需要保持同步。
+            // Member.ImageUrl 是業務層的主圖；AppUser.ImageUrl 是 Identity 層的頭貼。
+            member.ImageUrl = photo.Url;
+            member.User.ImageUrl = photo.Url;
+
+            if (await memberRepository.SaveAllAsync()) return NoContent();
+
+            return BadRequest("Failed to set main photo");
+        }
+
     }
 }
