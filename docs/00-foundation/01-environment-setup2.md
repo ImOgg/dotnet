@@ -9,6 +9,7 @@
 ## 快速開始
 
 ### 1. 安裝依賴
+- 類似 npm install、composer install
 ```bash
 dotnet restore
 ```
