@@ -7,6 +7,7 @@ using API.Interfaces;
 using System.Security.Claims;
 using API.DTOs;
 using API.Extemsions;
+using API.Helpers;
 
 namespace API.Controllers
 {
@@ -30,10 +31,23 @@ namespace API.Controllers
         // 向呼叫端傳達「這個清單只能讀，不能修改」的意圖，
         // 防止呼叫端意外對回傳的集合做增刪操作。
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
+        //   第一個版本，回傳所有會員清單，沒有分頁。
+        // public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
+        // {
+        //     var members = await memberRepository.GetMembersAsync();
+        //     return Ok(members);
+        // }
+        
+        // 【為什麼回傳 PaginatedResult<Member> 而不是 IReadOnlyList<Member>？】
+        // 分頁後回傳的資料不只是清單，還包含分頁元數據（總筆數、總頁數等），
+        // PaginatedResult<Member> 同時包含 Items（當頁資料）和 Metadata（分頁資訊），
+        // 讓前端能正確渲染分頁 UI（例如：共幾頁、目前在第幾頁）。
+        // 若仍宣告 IReadOnlyList<Member>，Swagger 產生的文件 schema 會是錯的，
+        // 導致前端開發者對 API 回傳格式產生誤解。
+        public async Task<ActionResult<PaginatedResult<Member>>> GetMembers([FromQuery] PagingParams pagingParams)
         {
-            var members = await memberRepository.GetMembersAsync();
-            return Ok(members);
+            var paginatedMembers = await memberRepository.GetMembersAsync(pagingParams);
+            return Ok(paginatedMembers);
         }
 
         // 【為什麼路由參數是 string id 而不是 int id？】

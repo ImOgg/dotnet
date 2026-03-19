@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Entities;
 using Microsoft.EntityFrameworkCore;
+using API.Helpers;
 
 namespace API.Data;
 
@@ -42,18 +43,22 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
+    // 這是第一個版本，回傳所有會員清單，沒有分頁。
     // 為什麼用 ToListAsync 而不是 AsEnumerable？
     // ToListAsync 會一次把所有資料載入記憶體，後續操作在記憶體中執行。
     // AsEnumerable 也是在記憶體中操作，但不非同步。
     // 兩者都不同於 IQueryable，IQueryable 的篩選會轉成 SQL 在資料庫執行（效能更好）。
     // 這裡回傳所有會員清單，沒有進一步篩選，所以 ToListAsync 是合適的選擇。
-    public async Task<IReadOnlyList<Member>> GetMembersAsync()
-    {
-        var query = context.Members.AsQueryable();
+    // public async Task<IReadOnlyList<Member>> GetMembersAsync()
+    // {   
+    //     return await context.Members.ToListAsync();
+    // }
 
-        return await query.ToListAsync();
-        // 原本無篩選條件，直接 ToListAsync 就好；如果有分頁或搜尋條件，應該在資料庫層面先篩選，再載入需要的資料。
-        // return await context.Members.ToListAsync();
+    public async Task<PaginatedResult<Member>> GetMembersAsync(PagingParams pagingParams)
+    {
+        var query = context.Members.AsQueryable(); // 先取得 IQueryable，後續可以加條件篩選
+
+        return await PaginationHelper.CreateAsync(query, pagingParams.PageNumber, pagingParams.PageSize);
     }
 
     // 為什麼用 Where + SelectMany 而不是先找 Member 再用 member.Photos？
