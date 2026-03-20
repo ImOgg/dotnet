@@ -41,12 +41,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         // ===== MemberLike 的複合主鍵設定 =====
         modelBuilder.Entity<MemberLike>()
-            .HasKey(k => new { k.SourceUserId, k.TargetMemberId }); // 設定複合主鍵
+            .HasKey(k => new { k.SourceMemberId, k.TargetMemberId }); // 設定複合主鍵
 
         modelBuilder.Entity<MemberLike>()
             .HasOne(s => s.SourceMember) // MemberLike 與 SourceMember 是多對一關係
             .WithMany(m => m.LikedMembers) // Member 有多個 LikedMembers（喜歡的會員列表）
-            .HasForeignKey(s => s.SourceUserId) // 外鍵是 SourceUserId
+            .HasForeignKey(s => s.SourceMemberId) // 外鍵是 SourceMemberId
             .OnDelete(DeleteBehavior.Cascade); // 刪除 SourceMember 時，同步刪除相關 MemberLike
 
         modelBuilder.Entity<MemberLike>()
