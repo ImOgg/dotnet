@@ -33,10 +33,16 @@ public interface IMemberRepository
     // 為什麼回傳 IReadOnlyList<T> 而不是 List<T>？
     // 向外部傳達「這個集合不應該被修改」的意圖（防禦性設計）。
     // 呼叫端拿到後無法呼叫 Add()、Remove() 等修改方法，避免意外變動。
+    // 版本一：回傳所有會員清單，沒有分頁。
     // Task<IReadOnlyList<Member>> GetMembersAsync();
 
+    // 版本二
     // 這改成可以丟分頁參數的版本，回傳 PaginatedResult<Member>，包含分頁資料和元數據。
-    Task<PaginatedResult<Member>> GetMembersAsync(PagingParams pagingParams);
+    // Task<PaginatedResult<Member>> GetMembersAsync(PagingParams pagingParams);
+
+    // 版本三
+    // 這改成可以丟 MemberParams 的版本，除了分頁參數外，還可以帶性別、當前會員 ID 等過濾條件。
+    Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams);
 
     // 為什麼回傳 Member?（可為 null）？
     // 表示這個方法可能找不到對應的 Member（id 不存在），

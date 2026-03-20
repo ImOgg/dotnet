@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-
+using API.Helpers;
 namespace API.Controllers
 {
     // 所有 API Controller 的基底類別
@@ -18,6 +18,7 @@ namespace API.Controllers
     //
     //   有 Base 的寫法（乾淨很多）：
     //     public class MembersController : BaseApiController { }
+    [ServiceFilter(typeof(LogUserActivity))] // 在 BaseApiController 加入 LogUserActivity Filter，讓所有子 Controller 都自動套用
     [Route("api/[controller]")]
     [ApiController]
     public class BaseApiController : ControllerBase

@@ -14,7 +14,7 @@ public class Member
     // null! 告訴編譯器：此欄位不會是 null，EF Core 載入時一定會賦值，不需要警告
     public string Id { get; set; } = null!;
 
-    public DateOnly DateofBirth { get; set; }
+    public DateOnly DateOfBirth { get; set; }
 
     public string? ImageUrl { get; set; }
 

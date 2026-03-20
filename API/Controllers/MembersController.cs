@@ -37,19 +37,30 @@ namespace API.Controllers
         //     var members = await memberRepository.GetMembersAsync();
         //     return Ok(members);
         // }
-        
+
+        // 第二個版本
         // 【為什麼回傳 PaginatedResult<Member> 而不是 IReadOnlyList<Member>？】
         // 分頁後回傳的資料不只是清單，還包含分頁元數據（總筆數、總頁數等），
         // PaginatedResult<Member> 同時包含 Items（當頁資料）和 Metadata（分頁資訊），
         // 讓前端能正確渲染分頁 UI（例如：共幾頁、目前在第幾頁）。
         // 若仍宣告 IReadOnlyList<Member>，Swagger 產生的文件 schema 會是錯的，
         // 導致前端開發者對 API 回傳格式產生誤解。
-        public async Task<ActionResult<PaginatedResult<Member>>> GetMembers([FromQuery] PagingParams pagingParams)
-        {
-            var paginatedMembers = await memberRepository.GetMembersAsync(pagingParams);
-            return Ok(paginatedMembers);
-        }
+        // public async Task<ActionResult<PaginatedResult<Member>>> GetMembers([FromQuery] PagingParams pagingParams)
+        // {
+        //     var paginatedMembers = await memberRepository.GetMembersAsync(pagingParams);
+        //     return Ok(paginatedMembers);
+        // }
 
+        // 第三個版本
+        // 【為什麼參數是 MemberParams 而不是 PagingParams？】
+        // MemberParams 繼承自 PagingParams，除了分頁參數外，還可以帶性別、當前會員 ID 等過濾條件。
+        // 這樣在 Controller 就能直接從 JWT Token 取出當前會員 ID，傳給 Repository 用來排除自己，實現「不顯示自己在會員清單裡」的功能。
+        public async Task<ActionResult<PaginatedResult<Member>>> GetMembers([FromQuery] MemberParams memberParams)
+        {   
+            memberParams.CurrentMemberId = User.GetMemberId(); // 從 JWT Token 取出當前會員 ID，傳給 Repository 用來排除自己
+
+            return Ok(await memberRepository.GetMembersAsync(memberParams));
+        }
         // 【為什麼路由參數是 string id 而不是 int id？】
         // ASP.NET Core Identity 的 AppUser.Id 預設是 GUID（字串格式），
         // Member 的 Id 是關聯到 AppUser.Id，因此也是字串型別。

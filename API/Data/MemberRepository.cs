@@ -54,11 +54,33 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     //     return await context.Members.ToListAsync();
     // }
 
-    public async Task<PaginatedResult<Member>> GetMembersAsync(PagingParams pagingParams)
+    // 第二個版本
+    // public async Task<PaginatedResult<Member>> GetMembersAsync(PagingParams pagingParams)
+    // {
+    //     var query = context.Members.AsQueryable(); // 先取得 IQueryable，後續可以加條件篩選
+
+    //     return await PaginationHelper.CreateAsync(query, pagingParams.PageNumber, pagingParams.PageSize);
+    // }
+    // 第三個版本
+    public async Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams)
     {
         var query = context.Members.AsQueryable(); // 先取得 IQueryable，後續可以加條件篩選
 
-        return await PaginationHelper.CreateAsync(query, pagingParams.PageNumber, pagingParams.PageSize);
+        query = query.Where(m => m.Id != memberParams.CurrentMemberId); // 排除當前會員自己
+        if (memberParams.Gender != null)
+        {
+            query = query.Where(x => x.Gender == memberParams.Gender);
+        }
+        var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MaxAge - 1)); // 最小出生日期（年齡上限）
+        var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MinAge));     // 最大出生日期（年齡下限）
+        query = query.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
+
+        query = memberParams.OrderBy.ToLower() switch
+        {
+            "created" => query.OrderByDescending(x => x.Created),
+            _ => query.OrderByDescending(x => x.LastActive) // 預設排序：最後活躍時間
+        };
+        return await PaginationHelper.CreateAsync(query, memberParams.PageNumber, memberParams.PageSize);
     }
 
     // 為什麼用 Where + SelectMany 而不是先找 Member 再用 member.Photos？

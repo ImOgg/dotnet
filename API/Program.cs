@@ -51,6 +51,7 @@ builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(
 // }
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddScoped<LogUserActivity>(); // 注入 LogUserActivity 服務，讓它可以在需要的地方被使用
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
