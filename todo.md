@@ -1,4 +1,5 @@
-## 課程到到第10章完成了
+## 課程進度到新增Likes
+https://www.udemy.com/course/build-an-app-with-aspnet-core-and-angular-from-scratch/learn/lecture/51129437#overview
 
 ## cloudinary 
 - 類似 S3 MinIO ，但這個可以更優化圖片的儲存或是輸出
