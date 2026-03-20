@@ -43,4 +43,11 @@ public class Member
     [ForeignKey(nameof(Id))]
     public AppUser User { get; set; } = null!;
     public string? DisplayName { get; set; }
+
+    // ===== 喜歡與被喜歡的會員列表 =====
+    // 一對多導航屬性：一個 Member 可喜歡多個 Member
+    [JsonIgnore] // 序列化時忽略此屬性，避免循環參考問題
+    public List<MemberLike> LikedByMembers { get; set; } = [];
+    [JsonIgnore]
+    public List<MemberLike> LikedMembers { get; set; } = [];
 }

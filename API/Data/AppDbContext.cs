@@ -30,12 +30,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AppUser> Users { get; set; }
     public DbSet<Member> Members { get; set; }
     public DbSet<Photo> Photos { get; set; }
+    public DbSet<MemberLike> Likes { get; set; }
+
     public DbSet<Post> Posts { get; set; }
 
     // OnModelCreating：EF Core 建立模型時呼叫，可在此自訂資料表結構、關聯、轉換器等
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder); // 務必呼叫父類別，確保內建設定不被覆蓋
+
+        // ===== MemberLike 的複合主鍵設定 =====
+        modelBuilder.Entity<MemberLike>()
+            .HasKey(k => new { k.SourceUserId, k.TargetMemberId }); // 設定複合主鍵
+
+        modelBuilder.Entity<MemberLike>()
+            .HasOne(s => s.SourceMember) // MemberLike 與 SourceMember 是多對一關係
+            .WithMany(m => m.LikedMembers) // Member 有多個 LikedMembers（喜歡的會員列表）
+            .HasForeignKey(s => s.SourceUserId) // 外鍵是 SourceUserId
+            .OnDelete(DeleteBehavior.Cascade); // 刪除 SourceMember 時，同步刪除相關 MemberLike
+
+        modelBuilder.Entity<MemberLike>()
+            .HasOne(s => s.TargetMember) // MemberLike 與 TargetMember 是多對一關係
+            .WithMany(m => m.LikedByMembers) // Member 有多個 LikedByMembers（被喜歡的會員列表）
+            .HasForeignKey(s => s.TargetMemberId) // 外鍵是 TargetMemberId
+            .OnDelete(DeleteBehavior.NoAction); // 刪除 TargetMember 時，同步刪除相關 MemberLike
+
 
         // ===== DateTime UTC 轉換器 =====
         // 問題背景：MySQL 儲存 DateTime 時不帶時區資訊，
