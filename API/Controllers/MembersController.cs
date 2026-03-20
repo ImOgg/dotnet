@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using API.Interfaces;
 using System.Security.Claims;
 using API.DTOs;
-using API.Extemsions;
+using API.Extensions;
 using API.Helpers;
 
 namespace API.Controllers

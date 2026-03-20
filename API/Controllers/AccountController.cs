@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using API.Interfaces;
-using API.Extemsions;
+using API.Extensions;
 
 
 namespace API.Controllers;

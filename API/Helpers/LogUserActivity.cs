@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using API.Data;
-using API.Extemsions;
+using API.Extensions;
 
 namespace API.Helpers;
 

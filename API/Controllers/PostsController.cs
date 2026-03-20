@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using API.Entities;
 using API.Interfaces;
 using API.DTOs;
-using API.Extemsions;
+using API.Extensions;
 
 namespace API.Controllers
 {

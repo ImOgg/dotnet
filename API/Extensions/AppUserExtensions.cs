@@ -2,7 +2,7 @@ using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 
-namespace API.Extemsions;
+namespace API.Extensions;
 
 // 【擴充方法類別】
 // 為 AppUser Entity 新增轉換方法，不需修改原始類別。

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using API.Data;
 using API.Entities;
 using API.DTOs;
-using API.Extemsions;
+using API.Extensions;
 
 namespace API.Controllers
 {

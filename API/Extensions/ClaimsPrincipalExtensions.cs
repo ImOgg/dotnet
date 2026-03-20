@@ -12,7 +12,7 @@ using System.Security.Claims;
 // C# 規定擴充方法必須定義在非泛型、非巢狀的靜態類別中。
 // static class 無法被繼承或實例化，符合「工具類別」的語意。
 
-namespace API.Extemsions;
+namespace API.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
