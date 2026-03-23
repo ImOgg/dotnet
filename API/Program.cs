@@ -32,6 +32,7 @@ builder.Services.AddDbContext<AppDbContext>(
 // Scoped = 每次 HTTP 請求建立一個新實例。
 // Controller 只需宣告 IMemberRepository，DI 框架會自動注入 MemberRepository。
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 // CloudinarySetting
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
