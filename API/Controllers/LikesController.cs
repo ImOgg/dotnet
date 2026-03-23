@@ -1,4 +1,5 @@
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using API.Entities;
@@ -13,7 +14,7 @@ public class LikesController(ILikeRepository likeRepository) : BaseApiController
 
         if (sourceMemberId == targetMemberId) return BadRequest("You cannot like yourself.");
 
-        var existingLike = await likeRepository.GetUserLike(sourceMemberId, targetMemberId);
+        var existingLike = await likeRepository.GetMemberLike(sourceMemberId, targetMemberId);
         if (existingLike == null)
         {
             var like = new MemberLike
@@ -40,10 +41,10 @@ public class LikesController(ILikeRepository likeRepository) : BaseApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<Member>>> GetMemberLikes(string predicate)
+    public async Task<ActionResult> GetMemberLikes([FromQuery] LikeParams likesParams)
     {
-        var memberId = User.GetMemberId();
-        var likes = await likeRepository.GetMembersLikes(predicate, memberId); 
-        return Ok(likes);
+        likesParams.MemberId = User.GetMemberId();
+        var result = await likeRepository.GetMembersLikes(likesParams);
+        return Ok(result);
     }
 }
