@@ -27,9 +27,23 @@ public class LikesController(ILikeRepository likeRepository) : BaseApiController
         {
             likeRepository.DeleteLike(existingLike);
         }
-    
+
         if (await likeRepository.SaveAllChanges()) return Ok();
 
         return BadRequest("Failed to toggle like.");
+    }
+
+    [HttpGet("list")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetCurrentMemberLikesIds()
+    {
+        return Ok(await likeRepository.GetCurrentMemberLikeIds(User.GetMemberId()));
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<Member>>> GetMemberLikes(string predicate)
+    {
+        var memberId = User.GetMemberId();
+        var likes = await likeRepository.GetMembersLikes(predicate, memberId); 
+        return Ok(likes);
     }
 }
